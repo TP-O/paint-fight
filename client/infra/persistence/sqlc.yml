@@ -1,0 +1,14 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "pg/query"
+    schema: "pg/migration"
+    gen:
+      go:
+        package: "pggenerated"
+        out: "pg/generated"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_prepared_queries: false
+        emit_interface: true
+        emit_empty_slices: true
