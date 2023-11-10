@@ -28,13 +28,14 @@ func main() {
 
 	var pgDb *pg.Store
 	logger.StartToEnd(
-		func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-			defer cancel()
-			pgDb = pg.New(ctx, cfg.PostgreSQL)
+		logger.StartToEndConfig{
+			Action: func(ctx context.Context) {
+				pgDb = pg.New(ctx, cfg.PostgreSQL)
+			},
+			Timeout:  30 * time.Second,
+			StartMsg: "Connecting to PostgreSQL...",
+			EndMsg:   "Connected to PostgreSQL",
 		},
-		"Connecting to PostgreSQL...",
-		"Connected to PostgreSQL...",
 	)
 
 	router := gin.Default()
@@ -54,21 +55,22 @@ func main() {
 	go func() {
 		log.Printf("Server is listening on port %d", cfg.App.Port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Panic(err)
+			log.Fatalf("Server is closed: %s", err.Error())
 		}
 	}()
 
 	<-ctx.Done()
 
 	logger.StartToEnd(
-		func() {
-			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-			defer cancel()
-			if err := server.Shutdown(ctx); err != nil {
-				log.Println(err.Error())
-			}
+		logger.StartToEndConfig{
+			Action: func(ctx context.Context) {
+				if err := server.Shutdown(ctx); err != nil {
+					log.Fatalf("Shutting down failed: %s", err.Error())
+				}
+			},
+			Timeout:  5 * time.Second,
+			StartMsg: "Shutting down...",
+			EndMsg:   "Exited gracefully",
 		},
-		"Shutting down...",
-		"Exited",
 	)
 }
