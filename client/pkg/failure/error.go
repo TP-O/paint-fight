@@ -14,22 +14,19 @@ type AppError struct {
 
 const maxTraceback = 10
 
-func (a AppError) Error() string {
+func (a *AppError) Error() string {
 	if a.Msg != "" {
 		return a.Msg
 	} else if a.Code != 0 && errorMsg[a.Code] != "" {
 		return errorMsg[a.Code]
 	} else {
-		return errorMsg[UnknownErrorCode]
+		return errorMsg[ErrUnknownCode]
 	}
 }
 
-func (a AppError) ErrorWithTrace() string {
-	return fmt.Sprintf("%s \n at %s", a.Error(), trace())
-}
-
-func NewTraceError(err error) error {
-	return fmt.Errorf("%s \n at %s", err, trace())
+func ErrorWithTrace(err error) error {
+	fmt.Printf("%s \n at %s", err, trace())
+	return err
 }
 
 func trace() string {

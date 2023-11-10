@@ -2,7 +2,8 @@ app:
   debug: true
   env: development
   port: 8080
-  secretKey: "12345678912345678912345678912345"
+secret:
+  auth: "12345678912345678912345678912345"
 postgresql:
   host: localhost
   port: 5432
@@ -10,3 +11,6 @@ postgresql:
   password: xxxxx
   database: client
   poolSize: 5
+service:
+  web: http://127.0.0.1:3000
+

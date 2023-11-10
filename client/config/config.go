@@ -12,7 +12,9 @@ type configLoader interface {
 
 type config struct {
 	App        `mapstructure:"app"`
+	Secret     `mapstructure:"secret"`
 	PostgreSQL `mapstructure:"postgresql"`
+	Service    `mapstructure:"service"`
 }
 
 var cfg *config
@@ -20,7 +22,9 @@ var cfg *config
 // loadDefaultConfig loads the default config values.
 func loadDefaultConfig(cfg *config) {
 	cfg.App.loadDefault()
+	cfg.Secret.loadDefault()
 	cfg.PostgreSQL.loadDefault()
+	cfg.Service.loadDefault()
 }
 
 // Load loads config values from the given path and
@@ -42,8 +46,8 @@ func Load(path string) *config {
 			log.Panic(err)
 		}
 
-		if len(cfg.App.SecretKey) < 32 {
-			log.Panicf("The secret key is insecure: %s", cfg.App.SecretKey)
+		if len(cfg.Secret.Auth) < 32 {
+			log.Panicf("The secret key is insecure: %s", cfg.Secret.Auth)
 		}
 	}
 

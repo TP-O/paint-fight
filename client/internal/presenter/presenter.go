@@ -11,15 +11,14 @@ func NewPresenter[M any, P any](model *M) Presenter[M, P] {
 }
 
 func (p Presenter[M, P]) Presenter() (*P, error) {
-	var presenter P
-	if err := copier.Copy(&presenter, p.model); err != nil {
-		return nil, err
-	}
-
-	return &presenter, nil
+	return PresenterFrom[M, P](p.model)
 }
 
 func (p *Presenter[M, P]) PresenterFrom(model *M) (*P, error) {
+	return PresenterFrom[M, P](model)
+}
+
+func PresenterFrom[M any, P any](model *M) (*P, error) {
 	var presenter P
 	if err := copier.Copy(&presenter, model); err != nil {
 		return nil, err

@@ -8,10 +8,9 @@ const (
 )
 
 type App struct {
-	Debug     bool   `mapstructure:"debug"`
-	Env       string `mapstructure:"env"`
-	Port      uint16 `mapstructure:"port"`
-	SecretKey string `mapstructure:"secretKey"`
+	Debug bool   `mapstructure:"debug"`
+	Env   string `mapstructure:"env"`
+	Port  uint16 `mapstructure:"port"`
 }
 
 var _ configLoader = (*App)(nil)
