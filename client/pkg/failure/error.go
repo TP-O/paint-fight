@@ -8,6 +8,7 @@ import (
 
 type AppError struct {
 	Code          AppErrorCode
+	Status        int
 	Msg           string
 	OriginalError error
 }
