@@ -6,8 +6,8 @@ import (
 )
 
 type Player struct {
-	presenter.Presenter[pggenerated.Player, presenter.Player]
-	model *pggenerated.Player
+	presenter.Presentation[pggenerated.Player, presenter.Player]
+	*pggenerated.Player
 }
 
 func NewPlayer(model *pggenerated.Player) *Player {

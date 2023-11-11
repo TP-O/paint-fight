@@ -6,10 +6,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (a Api) GetPlayerByID(ctx *gin.Context) {
+func (a Api) GetPlayerByEmailOrUsername(ctx *gin.Context) {
 	var (
 		player    *entity.Player
 		presenter *presenter.Player
@@ -17,13 +16,7 @@ func (a Api) GetPlayerByID(ctx *gin.Context) {
 	)
 	defer a.Exception(ctx, err)
 
-	var id [16]byte
-	copy(id[:], ctx.Param("id"))
-
-	player, err = a.playerService.Player(ctx, pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	})
+	player, err = a.playerService.PlayerByEmailOrUsername(ctx, ctx.Param("emailOrUsername"))
 	if err != nil {
 		return
 	}

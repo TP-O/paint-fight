@@ -8,7 +8,7 @@ import (
 
 type AppError struct {
 	Code          AppErrorCode
-	Status        int
+	HttpStatus    int
 	Msg           string
 	OriginalError error
 }

@@ -4,7 +4,7 @@ import (
 	"client/config"
 	"client/infra/entrypoint/api"
 	"client/infra/persistence/pg"
-	"client/internal/service"
+	"client/internal/service/player"
 	"client/pkg/logger"
 	"context"
 	"fmt"
@@ -43,7 +43,7 @@ func main() {
 
 	apiServer := api.New(
 		cfg.App,
-		service.NewPlayerService(pgDb),
+		player.NewService(pgDb),
 	)
 	apiServer.UseRouter(apiGroup)
 

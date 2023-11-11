@@ -1,6 +1,12 @@
 package presenter
 
 type Login struct {
-	Token  string  `json:"token"`
-	Player *Player `json:"player"`
+	Player       Player `json:"player"`
+	AccessToken  Token  `json:"accessToken"`
+	RefreshToken Token  `json:"refreshToken"`
+}
+
+type Token struct {
+	Value     string `json:"value"`
+	ExpiredAt int64  `json:"expiredAt"`
 }

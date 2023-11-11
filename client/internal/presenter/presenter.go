@@ -2,27 +2,27 @@ package presenter
 
 import "github.com/jinzhu/copier"
 
-type Presenter[M any, P any] struct {
+type Presentation[M any, P any] struct {
 	model *M
 }
 
-func NewPresenter[M any, P any](model *M) Presenter[M, P] {
-	return Presenter[M, P]{model}
+func NewPresenter[M any, P any](model *M) Presentation[M, P] {
+	return Presentation[M, P]{model}
 }
 
-func (p Presenter[M, P]) Presenter() (*P, error) {
+func (p Presentation[M, P]) Presenter() (*P, error) {
 	return PresenterFrom[M, P](p.model)
 }
 
-func (p *Presenter[M, P]) PresenterFrom(model *M) (*P, error) {
+func (p *Presentation[M, P]) PresenterFrom(model *M) (*P, error) {
 	return PresenterFrom[M, P](model)
 }
 
-func PresenterFrom[M any, P any](model *M) (*P, error) {
-	var presenter P
-	if err := copier.Copy(&presenter, model); err != nil {
+func PresenterFrom[F any, T any](from *F) (*T, error) {
+	var to T
+	if err := copier.Copy(&to, from); err != nil {
 		return nil, err
 	}
 
-	return &presenter, nil
+	return &to, nil
 }

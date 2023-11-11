@@ -3,7 +3,7 @@ package presenter
 import "github.com/jackc/pgx/v5/pgtype"
 
 type Player struct {
-	ID                pgtype.UUID      `json:"id"`
+	ID                pgtype.UUID      `json:"id"` // TODO: use ULID
 	Username          string           `json:"username"`
 	Email             string           `json:"email"`
 	Active            bool             `json:"active"`
