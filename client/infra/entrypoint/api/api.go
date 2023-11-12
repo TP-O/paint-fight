@@ -51,8 +51,8 @@ func (a Api) UseRouter(router *gin.RouterGroup) {
 	authGroup := router.Group("/auth")
 	authGroup.POST("/login", a.Login)
 	authGroup.POST("/register", a.CreateAccount)
-	// authGroup.GET("/password/forgot", a.ForgotPassword)
-	// authGroup.POST("/password/reset", a.ResetPassword)
+	authGroup.GET("/password/forgot", a.ForgotPassword)
+	authGroup.POST("/password/reset", a.ResetPassword)
 	// authGroup.GET("/email/verify", a.RequestVerifyEmail)
 	// authGroup.POST("/email/verify", a.VerifyEmail)
 
