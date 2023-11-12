@@ -4,10 +4,14 @@ import (
 	"client/config"
 	"client/internal/service/player"
 	"client/pkg/failure"
+	"client/pkg/validate"
 	"errors"
 	"net/http"
+	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator/v10"
 )
 
 type Api struct {
@@ -15,18 +19,28 @@ type Api struct {
 	playerService *player.Service
 }
 
+var api *Api
+
 func New(
 	cfg config.App,
 	playerService *player.Service,
 ) *Api {
-	if cfg.Env == config.ProdEnv {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	sync.OnceFunc(func() {
+		if cfg.Env == config.ProdEnv {
+			gin.SetMode(gin.ReleaseMode)
+		}
 
-	return &Api{
-		cfg,
-		playerService,
-	}
+		if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
+			validate.SetUp(v)
+		}
+
+		api = &Api{
+			cfg,
+			playerService,
+		}
+	})()
+
+	return api
 }
 
 func (a Api) UseRouter(router *gin.RouterGroup) {
@@ -50,17 +64,26 @@ func (a Api) Exception(ctx *gin.Context, err error) {
 		}
 
 		ctx.JSON(appErr.HttpStatus, gin.H{
-			"ok":      false,
-			"code":    appErr.Code,
-			"message": appErr.Error(),
+			"ok":    false,
+			"code":  appErr.Code,
+			"error": appErr.Error(),
+		})
+		return
+	}
+
+	var validationErr *validator.ValidationErrors
+	if errors.As(err, &validationErr) {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"ok":          false,
+			"fieldErrors": validate.FormatValidationError(*validationErr),
 		})
 		return
 	}
 
 	ctx.JSON(http.StatusInternalServerError, gin.H{
-		"ok":      false,
-		"code":    failure.ErrUnknownCode,
-		"message": err.Error(),
+		"ok":    false,
+		"code":  failure.ErrUnknownCode,
+		"error": err.Error(),
 	})
 }
 

@@ -42,6 +42,7 @@ func (s Service) Login(ctx context.Context, payload *dto.Login) (*presenter.Logi
 		}
 	}
 
+	// TODO: remove this duplicate logic (generate token) in login and create account feature
 	now := time.Now()
 	exp := now.Add(tokenLifetime)
 	jsonToken := paseto.JSONToken{

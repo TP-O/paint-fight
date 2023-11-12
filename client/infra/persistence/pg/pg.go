@@ -6,14 +6,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-var db *pgxpool.Pool
+var db *Store
 
 func New(ctx context.Context, cfg config.PostgreSQL) *Store {
-	if db == nil {
+	sync.OnceFunc(func() {
 		poolCfg, err := pgxpool.ParseConfig(fmt.Sprintf(
 			"postgres://%v:%v@%v:%v/%v?pool_max_conns=%d&sslmode=require",
 			cfg.Username,
@@ -27,18 +28,20 @@ func New(ctx context.Context, cfg config.PostgreSQL) *Store {
 			log.Fatalf("Unable to parse connection string: %s", err.Error())
 		}
 
-		db, err = pgxpool.NewWithConfig(ctx, poolCfg)
+		pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 		if err != nil {
 			log.Fatalf("Unable to create connection pool: %s", err.Error())
 		}
-	}
 
-	if err := db.Ping(ctx); err != nil {
-		log.Fatalf("Unable to connect to database: %s", err.Error())
-	}
+		if err := pool.Ping(ctx); err != nil {
+			log.Fatalf("Unable to connect to database: %s", err.Error())
+		}
 
-	return &Store{
-		Queries: pggenerated.New(db),
-		db:      db,
-	}
+		db = &Store{
+			Queries: pggenerated.New(pool),
+			db:      pool,
+		}
+	})()
+
+	return db
 }

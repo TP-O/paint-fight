@@ -17,6 +17,7 @@ func (s *Store) Close() {
 	s.db.Close()
 }
 
+// TODO: use tx
 func (s *Store) execTx(ctx context.Context, fn func(q *pggenerated.Queries) error) error {
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
