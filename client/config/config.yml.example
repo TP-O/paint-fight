@@ -11,6 +11,3 @@ postgresql:
   password: xxxxx
   database: client
   poolSize: 5
-service:
-  web: http://127.0.0.1:3000
-

@@ -14,7 +14,6 @@ type config struct {
 	App        `mapstructure:"app"`
 	Secret     `mapstructure:"secret"`
 	PostgreSQL `mapstructure:"postgresql"`
-	Service    `mapstructure:"service"`
 }
 
 var cfg *config
@@ -24,7 +23,6 @@ func loadDefaultConfig(cfg *config) {
 	cfg.App.loadDefault()
 	cfg.Secret.loadDefault()
 	cfg.PostgreSQL.loadDefault()
-	cfg.Service.loadDefault()
 }
 
 // Load loads config values from the given path and
