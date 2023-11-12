@@ -11,15 +11,14 @@ import (
 
 func (a Api) GetPlayerByID(ctx *gin.Context) {
 	var (
+		id        [16]byte
 		player    *entity.Player
 		presenter *presenter.Player
 		err       error
 	)
 	defer a.Exception(ctx, err)
 
-	var id [16]byte
 	copy(id[:], ctx.Param("id"))
-
 	player, err = a.playerService.Player(ctx, pgtype.UUID{
 		Bytes: id,
 		Valid: true,

@@ -26,27 +26,23 @@ Error code details:
 
 - Two first numbers are app code.
 
-- Two middle numbers are app service code.
+- Four last numbers are error code.
 
-- Three last numbers are error code.
-
-Eg: 100000 means 10 (App code) 00 (App service code) 00 (Error code)
+Eg: 100000 means 10 (App code) 0000 (Error code)
 */
 const (
-	ErrUnknownCode AppErrorCode = 10_00_000
-
-	ErrIncorrectAccount                AppErrorCode = 10_01_000
-	ErrNoLoginResponse                 AppErrorCode = 10_01_001
-	ErrEmailAlreadyExists              AppErrorCode = 10_01_002
-	ErrUnableToCreateAccount           AppErrorCode = 10_01_003
-	ErrNoCreateAccountResponse         AppErrorCode = 10_01_004
-	ErrInvalidSignature                AppErrorCode = 10_01_005
-	ErrExpiredLink                     AppErrorCode = 10_01_006
-	ErrUnableToVerifyEmail             AppErrorCode = 10_01_007
-	ErrEmailDoesNotExist               AppErrorCode = 10_01_008
-	ErrUnableToCreateVerifyEmailLink   AppErrorCode = 10_01_009
-	ErrUnableToCreateResetPasswordLink AppErrorCode = 10_01_010
-	ErrUnableToUpdatePassword          AppErrorCode = 10_01_011
-
-	ErrPlayerDoesNotExist AppErrorCode = 10_02_000
+	ErrUnknownCode AppErrorCode = iota + 10_0000
+	ErrIncorrectAccount
+	ErrNoLoginResponse
+	ErrEmailAlreadyExists
+	ErrNoCreateAccountResponse
+	ErrInvalidSignature
+	ErrExpiredLink
+	ErrUnableToVerifyEmail
+	ErrEmailDoesNotExist
+	ErrUnableToCreateVerifyEmailLink
+	ErrUnableToCreateResetPasswordLink
+	ErrUnableToUpdatePassword
+	ErrPlayerDoesNotExist
+	ErrUnableToCreateAccount
 )

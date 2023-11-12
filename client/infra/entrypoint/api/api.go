@@ -2,6 +2,7 @@ package api
 
 import (
 	"client/config"
+	"client/internal/service/auth"
 	"client/internal/service/player"
 	"client/pkg/failure"
 	"client/pkg/validate"
@@ -16,6 +17,7 @@ import (
 
 type Api struct {
 	cfg           config.App
+	authService   *auth.Service
 	playerService *player.Service
 }
 
@@ -23,6 +25,7 @@ var api *Api
 
 func New(
 	cfg config.App,
+	authService *auth.Service,
 	playerService *player.Service,
 ) *Api {
 	sync.OnceFunc(func() {
@@ -36,6 +39,7 @@ func New(
 
 		api = &Api{
 			cfg,
+			authService,
 			playerService,
 		}
 	})()
@@ -44,7 +48,13 @@ func New(
 }
 
 func (a Api) UseRouter(router *gin.RouterGroup) {
-	// authGroup := router.Group("/auth")
+	authGroup := router.Group("/auth")
+	authGroup.POST("/login", a.Login)
+	authGroup.POST("/register", a.CreateAccount)
+	// authGroup.GET("/password/forgot", a.ForgotPassword)
+	// authGroup.POST("/password/reset", a.ResetPassword)
+	// authGroup.GET("/email/verify", a.RequestVerifyEmail)
+	// authGroup.POST("/email/verify", a.VerifyEmail)
 
 	playerGroup := router.Group("/player")
 	playerGroup.GET("/:id", a.GetPlayerByID)
@@ -88,8 +98,14 @@ func (a Api) Exception(ctx *gin.Context, err error) {
 }
 
 func (a Api) Ok(ctx *gin.Context, httpStatus int, data any) {
-	ctx.JSON(httpStatus, gin.H{
-		"ok":   true,
-		"data": data,
-	})
+	if data != nil {
+		ctx.JSON(httpStatus, gin.H{
+			"ok":   true,
+			"data": data,
+		})
+	} else {
+		ctx.JSON(httpStatus, gin.H{
+			"ok": true,
+		})
+	}
 }
