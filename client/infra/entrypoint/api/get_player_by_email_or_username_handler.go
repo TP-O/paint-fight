@@ -14,7 +14,7 @@ func (a Api) GetPlayerByEmailOrUsername(ctx *gin.Context) {
 		presenter *presenter.Player
 		err       error
 	)
-	defer a.Exception(ctx, err)
+	defer a.Error(ctx, err)
 
 	player, err = a.playerService.PlayerByEmailOrUsername(ctx, ctx.Param("emailOrUsername"))
 	if err != nil {

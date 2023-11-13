@@ -14,7 +14,7 @@ func (a Api) CreateAccount(ctx *gin.Context) {
 		res *presenter.Login
 		err error
 	)
-	defer a.Exception(ctx, err)
+	defer a.Error(ctx, err)
 
 	err = ctx.ShouldBindJSON(&req)
 	if err != nil {

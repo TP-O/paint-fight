@@ -17,8 +17,8 @@ var errorMsg = map[AppErrorCode]string{
 	ErrUnableToCreateVerifyEmailLink:   "Unable to create verify email link",
 	ErrUnableToCreateResetPasswordLink: "Unable to create reset password link",
 	ErrUnableToUpdatePassword:          "Unable to update password",
-
-	ErrPlayerDoesNotExist: "Player does not exist",
+	ErrPlayerDoesNotExist:              "Player does not exist",
+	ErrInvalidToken:                    "Token is invalid",
 }
 
 /*
@@ -45,4 +45,5 @@ const (
 	ErrUnableToUpdatePassword
 	ErrPlayerDoesNotExist
 	ErrUnableToCreateAccount
+	ErrInvalidToken
 )

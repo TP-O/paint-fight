@@ -1,7 +1,7 @@
 package api
 
 import (
-	"client/internal/dto"
+	"client/infra/entrypoint/constant"
 	"client/internal/service/auth"
 	"fmt"
 	"net/http"
@@ -11,20 +11,20 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-func (a Api) ForgotPassword(ctx *gin.Context) {
+func (a Api) RequestVerifyEmail(ctx *gin.Context) {
 	var (
-		req  dto.ForgotPassword
-		args *auth.ResetPasswordArgs
+		id   [16]byte
+		args *auth.VerifyEmailArgs
 		err  error
 	)
 	defer a.Error(ctx, err)
 
-	err = ctx.ShouldBindJSON(&req)
-	if err != nil {
-		return
-	}
+	copy(id[:], []byte(ctx.GetString(constant.UserIdContextKey)))
 
-	args, err = a.authService.ResetPasswordArgs(ctx, req.Email)
+	args, err = a.authService.VerifyEmailArgs(pgtype.UUID{
+		Bytes: id,
+		Valid: true,
+	})
 	if err != nil {
 		return
 	}
@@ -35,11 +35,10 @@ func (a Api) ForgotPassword(ctx *gin.Context) {
 	a.Ok(ctx, http.StatusOK, nil)
 }
 
-func (a Api) ResetPassword(ctx *gin.Context) {
+func (a Api) VerifyEmail(ctx *gin.Context) {
 	var (
 		id        [16]byte
 		expiredAt int
-		req       dto.ResetPassword
 		err       error
 	)
 	defer a.Error(ctx, err)
@@ -51,20 +50,14 @@ func (a Api) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	err = ctx.ShouldBindJSON(&req)
-	if err != nil {
-		return
-	}
-
-	err = a.authService.ResetPassword(
+	err = a.authService.VerifyEmail(
 		ctx,
 		pgtype.UUID{
 			Bytes: id,
 			Valid: true,
 		},
 		int64(expiredAt),
-		ctx.Query("signature"),
-		&req)
+		ctx.Query("signature"))
 	if err != nil {
 		return
 	}

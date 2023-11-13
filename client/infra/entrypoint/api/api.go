@@ -2,12 +2,12 @@ package api
 
 import (
 	"client/config"
+	"client/infra/entrypoint/constant"
+	"client/infra/entrypoint/exception"
+	"client/infra/entrypoint/middleware"
 	"client/internal/service/auth"
 	"client/internal/service/player"
-	"client/pkg/failure"
 	"client/pkg/validate"
-	"errors"
-	"net/http"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -17,14 +17,17 @@ import (
 
 type Api struct {
 	cfg           config.App
+	middleware    *middleware.Middleware
 	authService   *auth.Service
 	playerService *player.Service
 }
 
 var api *Api
 
+// TODO: use struct as single paramater
 func New(
 	cfg config.App,
+	middleware *middleware.Middleware,
 	authService *auth.Service,
 	playerService *player.Service,
 ) *Api {
@@ -39,6 +42,7 @@ func New(
 
 		api = &Api{
 			cfg,
+			middleware,
 			authService,
 			playerService,
 		}
@@ -53,48 +57,18 @@ func (a Api) UseRouter(router *gin.RouterGroup) {
 	authGroup.POST("/register", a.CreateAccount)
 	authGroup.GET("/password/forgot", a.ForgotPassword)
 	authGroup.POST("/password/reset", a.ResetPassword)
-	// authGroup.GET("/email/verify", a.RequestVerifyEmail)
-	// authGroup.POST("/email/verify", a.VerifyEmail)
+	authGroup.GET("/email/verify", a.middleware.DecryptPasetoToken, a.RequestVerifyEmail)
+	authGroup.POST("/email/verify", a.VerifyEmail)
 
 	playerGroup := router.Group("/player")
 	playerGroup.GET("/:id", a.GetPlayerByID)
 	playerGroup.GET("/username/:emailOrUsername", a.GetPlayerByEmailOrUsername)
+
+	router.Use(exception.Handler)
 }
 
-// TODO: Check this function after a successful handling at handler
-func (a Api) Exception(ctx *gin.Context, err error) {
-	var appErr *failure.AppError
-	if errors.As(err, &appErr) {
-		if appErr.HttpStatus == 0 {
-			appErr.HttpStatus = http.StatusInternalServerError
-		}
-
-		if appErr.Code == 0 {
-			appErr.Code = failure.ErrUnknownCode
-		}
-
-		ctx.JSON(appErr.HttpStatus, gin.H{
-			"ok":    false,
-			"code":  appErr.Code,
-			"error": appErr.Error(),
-		})
-		return
-	}
-
-	var validationErr *validator.ValidationErrors
-	if errors.As(err, &validationErr) {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"ok":          false,
-			"fieldErrors": validate.FormatValidationError(*validationErr),
-		})
-		return
-	}
-
-	ctx.JSON(http.StatusInternalServerError, gin.H{
-		"ok":    false,
-		"code":  failure.ErrUnknownCode,
-		"error": err.Error(),
-	})
+func (a Api) Error(ctx *gin.Context, err error) {
+	ctx.Set(constant.ErrorContextKey, err)
 }
 
 func (a Api) Ok(ctx *gin.Context, httpStatus int, data any) {
