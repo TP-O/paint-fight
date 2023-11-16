@@ -1,0 +1,8 @@
+app:
+  env: development
+rabbitmq:
+  uri:
+email:
+  username:
+  hostname:
+  password:
