@@ -1,5 +1,5 @@
 from typing import TypedDict
-import yaml
+import yaml, os
 from constant import CONFIG_FILE
 
 class RabbitmqConfig(TypedDict):
@@ -23,7 +23,11 @@ _cfg: Config = None
 def load_config() -> Config:
   global _cfg
   if _cfg is None:
-    with open(CONFIG_FILE, "r") as yamlfile:
+    config_path = os.getenv("CONFIG_PATH")
+    if config_path == None or config_path == "":
+      config_path = CONFIG_FILE
+
+    with open(config_path, "r") as yamlfile:
       data = yaml.load(yamlfile, Loader=yaml.FullLoader)
 
       _cfg = Config()
