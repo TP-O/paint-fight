@@ -89,3 +89,27 @@ jobs:
           tags: ${{ steps.tags.outputs.TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    needs:
+      - build
+
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Trigger deploy
+        run: |
+          case ${{ github.ref }} in
+
+            refs/heads/dev)
+              curl ${{ secrets.RENDER_DEPLOY_HOOK_NOTIFIER_DEV }}
+              ;;
+
+            refs/heads/main)
+              curl ${{ secrets.RENDER_DEPLOY_HOOK_NOTIFIER }}
+              ;;
+
+            *)
+              echo "This branch can't be deployed";
+              exit 1;
+              ;;
+          esac
