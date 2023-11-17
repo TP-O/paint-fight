@@ -6,4 +6,6 @@ COPY . .
 
 RUN pip install -r requirements.txt
 
+ENV CONFIG_PATH=config.yml
+
 CMD ["python", "main.py"]
