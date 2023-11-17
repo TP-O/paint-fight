@@ -1,5 +1,6 @@
 app:
   env: development
+  host: 127.0.0.1:8080
 rabbitmq:
   uri:
 email:

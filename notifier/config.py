@@ -7,6 +7,7 @@ class RabbitmqConfig(TypedDict):
 
 class AppConfig(TypedDict):
   env: str
+  host: str
 
 class EmailConfig(TypedDict):
   username: str

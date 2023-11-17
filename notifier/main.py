@@ -1,10 +1,11 @@
 from ast import literal_eval
-import pika
+import pika, threading
 from pika.adapters.blocking_connection import BlockingChannel
 from config import load_config
 from constant import QUEUE, EXCHANGE, ROUTING_KEY
 from service import handle_message
 from logger import logger
+from keep_alive import keep_alive, start_http
 
 def callback(ch: BlockingChannel, method, properties, body: bytes):
   try:
@@ -14,6 +15,9 @@ def callback(ch: BlockingChannel, method, properties, body: bytes):
 
 if __name__ == "__main__":
   cfg = load_config()
+
+  threading.Thread(target=start_http, name="Start HTTP server").start()
+  threading.Thread(target=keep_alive, name="Keep service alive").start()
 
   params = pika.URLParameters(cfg["rabbitmq"]["uri"])
   params.socket_timeout = 15
