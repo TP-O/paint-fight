@@ -4,8 +4,12 @@ import (
 	"client/config"
 	pggenerated "client/infra/persistence/pg/generated"
 	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"encoding/pem"
 	"fmt"
 	"log"
+	"os"
 	"sync"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -27,6 +31,7 @@ func New(ctx context.Context, cfg config.PostgreSQL) *Store {
 		if err != nil {
 			log.Fatalf("Unable to parse connection string: %s", err.Error())
 		}
+		poolCfg.ConnConfig.TLSConfig = createTLSConfig(cfg.RootCA, cfg.Host)
 
 		pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 		if err != nil {
@@ -44,4 +49,25 @@ func New(ctx context.Context, cfg config.PostgreSQL) *Store {
 	})()
 
 	return db
+}
+
+func createTLSConfig(rootCAPath, serverName string) *tls.Config {
+	root, err := os.ReadFile(rootCAPath)
+	if err != nil {
+		log.Fatalf("Unable to read Root CA file: %s", err.Error())
+	}
+
+	block, _ := pem.Decode(root)
+	cert, err := x509.ParseCertificate(block.Bytes)
+	if err != nil {
+		log.Fatalf("Unable to parse certificate: %s", err.Error())
+	}
+
+	c := x509.NewCertPool()
+	c.AddCert(cert)
+
+	return &tls.Config{
+		RootCAs:    c,
+		ServerName: serverName,
+	}
 }

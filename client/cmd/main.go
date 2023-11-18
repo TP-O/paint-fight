@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"os/signal"
 	"runtime"
 	"syscall"
@@ -26,7 +27,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	cfg := config.Load("./config")
+	cfgDir := os.Getenv("CONFIG_DIR")
+	if cfgDir == "" {
+		cfgDir = "./config"
+	}
+	cfg := config.Load(cfgDir)
 
 	var pgDb *pg.Store
 	logger.StartToEnd(

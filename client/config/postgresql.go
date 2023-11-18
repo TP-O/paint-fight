@@ -9,6 +9,7 @@ type PostgreSQL struct {
 	Password string `mapstructure:"password"`
 	Database string `mapstructure:"database"`
 	PoolSize int32  `mapstructure:"poolSize"`
+	RootCA   string `mapstructure:"rootCA"`
 }
 
 var _ configLoader = (*PostgreSQL)(nil)
