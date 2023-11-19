@@ -5,7 +5,6 @@ import (
 	"client/infra/entrypoint/constant"
 	"client/infra/entrypoint/exception"
 	"client/infra/entrypoint/middleware"
-	"client/internal/service/auth"
 	"client/internal/service/player"
 	"client/pkg/validate"
 	"sync"
@@ -18,7 +17,6 @@ import (
 type Api struct {
 	cfg           config.App
 	middleware    *middleware.Middleware
-	authService   *auth.Service
 	playerService *player.Service
 }
 
@@ -28,7 +26,6 @@ var api *Api
 func New(
 	cfg config.App,
 	middleware *middleware.Middleware,
-	authService *auth.Service,
 	playerService *player.Service,
 ) *Api {
 	sync.OnceFunc(func() {
@@ -43,7 +40,6 @@ func New(
 		api = &Api{
 			cfg,
 			middleware,
-			authService,
 			playerService,
 		}
 	})()
@@ -52,14 +48,6 @@ func New(
 }
 
 func (a Api) UseRouter(router *gin.RouterGroup) {
-	authGroup := router.Group("/auth")
-	authGroup.POST("/login", a.Login)
-	authGroup.POST("/register", a.CreateAccount)
-	authGroup.GET("/password/forgot", a.ForgotPassword)
-	authGroup.POST("/password/reset", a.ResetPassword)
-	authGroup.GET("/email/verify", a.middleware.DecryptPasetoToken, a.RequestVerifyEmail)
-	authGroup.POST("/email/verify", a.VerifyEmail)
-
 	playerGroup := router.Group("/player")
 	playerGroup.GET("/:id", a.GetPlayerByID)
 	playerGroup.GET("/username/:emailOrUsername", a.GetPlayerByEmailOrUsername)

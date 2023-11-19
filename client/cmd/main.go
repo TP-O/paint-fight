@@ -5,7 +5,6 @@ import (
 	"client/infra/entrypoint/api"
 	"client/infra/entrypoint/middleware"
 	"client/infra/persistence/pg"
-	"client/internal/service/auth"
 	"client/internal/service/player"
 	"client/pkg/logger"
 	"context"
@@ -49,13 +48,11 @@ func main() {
 	apiGroup := router.Group("/")
 
 	playerService := player.NewService(pgDb)
-	authService := auth.NewService(pgDb, cfg.Secret.Auth, playerService)
 	middleware := middleware.NewMiddleware(cfg.Secret.Auth, playerService)
 
 	apiServer := api.New(
 		cfg.App,
 		middleware,
-		authService,
 		playerService,
 	)
 	apiServer.UseRouter(apiGroup)
