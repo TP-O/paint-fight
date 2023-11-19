@@ -1,10 +1,7 @@
 CREATE TABLE players (
-    id uuid PRIMARY KEY,
+    user_id uuid UNIQUE NOT NULL UNIQUE,
     username VARCHAR(50) NOT NULL UNIQUE,
-    email VARCHAR(320) NOT NULL,
-    password VARCHAR(72) NOT NULL,
-    active BOOLEAN NOT NULL DEFAULT 1,
-    email_verified_at TIMESTAMP,
-    password_updated_at TIMESTAMP
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_user FOREIGN KEY(user_id) REFERENCES auth.users(id) --table `users` in Supabase
 );

@@ -9,12 +9,7 @@ import (
 )
 
 type Player struct {
-	ID                pgtype.UUID      `json:"id"`
-	Username          string           `json:"username"`
-	Email             string           `json:"email"`
-	Password          string           `json:"password"`
-	Active            bool             `json:"active"`
-	EmailVerifiedAt   pgtype.Timestamp `json:"email_verified_at"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-	PasswordUpdatedAt pgtype.Timestamp `json:"password_updated_at"`
+	UserID    pgtype.UUID      `json:"user_id"`
+	Username  string           `json:"username"`
+	CreatedAt pgtype.Timestamp `json:"created_at"`
 }

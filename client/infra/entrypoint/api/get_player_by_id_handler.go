@@ -11,18 +11,19 @@ import (
 
 func (a Api) GetPlayerByID(ctx *gin.Context) {
 	var (
-		id        [16]byte
+		id        pgtype.UUID
 		player    *entity.Player
 		presenter *presenter.Player
 		err       error
 	)
 	defer a.Error(ctx, err)
 
-	copy(id[:], ctx.Param("id"))
-	player, err = a.playerService.Player(ctx, pgtype.UUID{
-		Bytes: id,
-		Valid: true,
-	})
+	err = id.Scan(ctx.Param("id"))
+	if err != nil {
+		return
+	}
+
+	player, err = a.playerService.GetByID(ctx, id)
 	if err != nil {
 		return
 	}

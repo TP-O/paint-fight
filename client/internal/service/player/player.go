@@ -4,10 +4,6 @@ import (
 	"client/infra/persistence/pg"
 )
 
-const (
-	bcryptCost = 20
-)
-
 type Service struct {
 	pg *pg.Store
 }

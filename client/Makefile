@@ -4,7 +4,7 @@ PG_CONFIG_PATH=infra/persistence/sqlc.yml
 include .env
 export $(shell sed 's/=.*//' .env)
 
-db-code:
+pg-code:
 	sqlc generate -f ${PG_CONFIG_PATH}
 
 pg-migrate:
@@ -15,9 +15,6 @@ pg-make-migration:
 
 pg-rollback:
 	migrate -path ${PG_PATH}/migration -verbose -database "${PG_URL}" down $(n)
-
-pg-drop:
-	migrate -path ${PG_PATH}/migration -verbose -database "${PG_URL}" drop
 
 pg-seed:
 	echo 1

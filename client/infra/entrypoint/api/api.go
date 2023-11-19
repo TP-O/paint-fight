@@ -50,7 +50,7 @@ func New(
 func (a Api) UseRouter(router *gin.RouterGroup) {
 	playerGroup := router.Group("/player")
 	playerGroup.GET("/:id", a.GetPlayerByID)
-	playerGroup.GET("/username/:emailOrUsername", a.GetPlayerByEmailOrUsername)
+	playerGroup.GET("/username/:username", a.GetPlayersUsername)
 
 	router.Use(exception.Handler)
 }

@@ -3,6 +3,7 @@ package player
 import (
 	pggenerated "client/infra/persistence/pg/generated"
 	"client/internal/entity"
+	"client/internal/presenter"
 	"client/pkg/failure"
 	"context"
 	"errors"
@@ -10,10 +11,9 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
-	"golang.org/x/crypto/bcrypt"
 )
 
-func (s Service) Player(ctx context.Context, id pgtype.UUID) (*entity.Player, error) {
+func (s Service) GetByID(ctx context.Context, id pgtype.UUID) (*entity.Player, error) {
 	player, err := s.pg.PlayerByID(ctx, id)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -32,8 +32,8 @@ func (s Service) Player(ctx context.Context, id pgtype.UUID) (*entity.Player, er
 	return entity.NewPlayer(&player), nil
 }
 
-func (s Service) PlayerByEmailOrUsername(ctx context.Context, emailOrUsername string) (*entity.Player, error) {
-	player, err := s.pg.PlayerByEmailOrUsername(ctx, emailOrUsername)
+func (s Service) GetByUsername(ctx context.Context, username string) ([]presenter.PlayersByUsername, error) {
+	players, err := s.pg.PlayersByUsername(ctx, username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, &failure.AppError{
@@ -48,29 +48,13 @@ func (s Service) PlayerByEmailOrUsername(ctx context.Context, emailOrUsername st
 		}
 	}
 
-	return entity.NewPlayer(&player), nil
-}
-
-func (s Service) CreateAccount(ctx context.Context, email, password string) (*entity.Player, error) {
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	res, err := presenter.PresenterFrom[[]pggenerated.PlayersByUsernameRow, []presenter.PlayersByUsername](&players)
 	if err != nil {
 		return nil, &failure.AppError{
-			Code:          failure.ErrUnableToCreateAccount,
+			HttpStatus:    http.StatusInternalServerError,
 			OriginalError: failure.ErrorWithTrace(err),
 		}
 	}
 
-	player, err := s.pg.CreatePlayer(ctx, pggenerated.CreatePlayerParams{
-		Username: "random", // TODO: random username
-		Email:    email,
-		Password: string(hashedPassword),
-	})
-	if err != nil {
-		return nil, &failure.AppError{
-			Code:          failure.ErrUnableToCreateAccount,
-			OriginalError: failure.ErrorWithTrace(err),
-		}
-	}
-
-	return entity.NewPlayer(&player), nil
+	return *res, nil
 }

@@ -13,99 +13,63 @@ import (
 
 const createPlayer = `-- name: CreatePlayer :one
 INSERT INTO players (
-    username, email, password
+    user_id, username
 ) VALUES (
-    $1, $2, $3
+    $1, $2
 )
-RETURNING id, username, email, password, active, email_verified_at, created_at, password_updated_at
+RETURNING user_id, username, created_at
 `
 
 type CreatePlayerParams struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	UserID   pgtype.UUID `json:"user_id"`
+	Username string      `json:"username"`
 }
 
 func (q *Queries) CreatePlayer(ctx context.Context, arg CreatePlayerParams) (Player, error) {
-	row := q.db.QueryRow(ctx, createPlayer, arg.Username, arg.Email, arg.Password)
+	row := q.db.QueryRow(ctx, createPlayer, arg.UserID, arg.Username)
 	var i Player
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.Password,
-		&i.Active,
-		&i.EmailVerifiedAt,
-		&i.CreatedAt,
-		&i.PasswordUpdatedAt,
-	)
-	return i, err
-}
-
-const playerByEmailOrUsername = `-- name: PlayerByEmailOrUsername :one
-SELECT id, username, email, password, active, email_verified_at, created_at, password_updated_at FROM players
-WHERE email = $1 OR
-    username = $1 LIMIT 1
-`
-
-func (q *Queries) PlayerByEmailOrUsername(ctx context.Context, emailOrUsername string) (Player, error) {
-	row := q.db.QueryRow(ctx, playerByEmailOrUsername, emailOrUsername)
-	var i Player
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.Password,
-		&i.Active,
-		&i.EmailVerifiedAt,
-		&i.CreatedAt,
-		&i.PasswordUpdatedAt,
-	)
+	err := row.Scan(&i.UserID, &i.Username, &i.CreatedAt)
 	return i, err
 }
 
 const playerByID = `-- name: PlayerByID :one
-SELECT id, username, email, password, active, email_verified_at, created_at, password_updated_at FROM players
-WHERE id = $1 LIMIT 1
+SELECT user_id, username, created_at FROM players
+WHERE user_id = $1
 `
 
-func (q *Queries) PlayerByID(ctx context.Context, id pgtype.UUID) (Player, error) {
-	row := q.db.QueryRow(ctx, playerByID, id)
+func (q *Queries) PlayerByID(ctx context.Context, userID pgtype.UUID) (Player, error) {
+	row := q.db.QueryRow(ctx, playerByID, userID)
 	var i Player
-	err := row.Scan(
-		&i.ID,
-		&i.Username,
-		&i.Email,
-		&i.Password,
-		&i.Active,
-		&i.EmailVerifiedAt,
-		&i.CreatedAt,
-		&i.PasswordUpdatedAt,
-	)
+	err := row.Scan(&i.UserID, &i.Username, &i.CreatedAt)
 	return i, err
 }
 
-const updatePassword = `-- name: UpdatePassword :exec
-UPDATE players SET password = $1, password_updated_at = NOW()
-WHERE id = $2
+const playersByUsername = `-- name: PlayersByUsername :many
+SELECT user_id, username FROM players
+WHERE username LIKE $1::varchar || '%'
 `
 
-type UpdatePasswordParams struct {
-	Password string      `json:"password"`
-	ID       pgtype.UUID `json:"id"`
+type PlayersByUsernameRow struct {
+	UserID   pgtype.UUID `json:"user_id"`
+	Username string      `json:"username"`
 }
 
-func (q *Queries) UpdatePassword(ctx context.Context, arg UpdatePasswordParams) error {
-	_, err := q.db.Exec(ctx, updatePassword, arg.Password, arg.ID)
-	return err
-}
-
-const verifyEmail = `-- name: VerifyEmail :exec
-UPDATE players SET email_verified_at = NOW()
-WHERE id = $1
-`
-
-func (q *Queries) VerifyEmail(ctx context.Context, id pgtype.UUID) error {
-	_, err := q.db.Exec(ctx, verifyEmail, id)
-	return err
+func (q *Queries) PlayersByUsername(ctx context.Context, username string) ([]PlayersByUsernameRow, error) {
+	rows, err := q.db.Query(ctx, playersByUsername, username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []PlayersByUsernameRow{}
+	for rows.Next() {
+		var i PlayersByUsernameRow
+		if err := rows.Scan(&i.UserID, &i.Username); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
