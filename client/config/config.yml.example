@@ -2,8 +2,6 @@ app:
   debug: true
   env: development
   port: 8080
-secret:
-  auth: "12345678912345678912345678912345"
 postgresql:
   host: localhost
   port: 5432
@@ -12,3 +10,6 @@ postgresql:
   database: client
   poolSize: 5
   rootCA: path/to/root-ca.crt
+supabase:
+  id:
+  anonKey:

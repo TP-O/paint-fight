@@ -6,7 +6,9 @@ import (
 	"client/infra/entrypoint/exception"
 	"client/infra/entrypoint/middleware"
 	"client/internal/service/player"
+	"client/pkg/failure"
 	"client/pkg/validate"
+	"errors"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -51,6 +53,7 @@ func (a Api) UseRouter(router *gin.RouterGroup) {
 	playerGroup := router.Group("/player")
 	playerGroup.GET("/:id", a.GetPlayerByID)
 	playerGroup.GET("/username/:username", a.GetPlayersUsername)
+	playerGroup.POST("/", a.middleware.Authenticate, a.CreatePlayer)
 
 	router.Use(exception.Handler)
 }
@@ -70,4 +73,23 @@ func (a Api) Ok(ctx *gin.Context, httpStatus int, data any) {
 			"ok": true,
 		})
 	}
+}
+
+func GetCtx[T any](ctx *gin.Context, key string) (T, error) {
+	var t T
+	val, ok := ctx.Get(key)
+	if !ok {
+		return t, &failure.AppError{
+			OriginalError: errors.New("context key does not exist"),
+		}
+	}
+
+	t, ok = val.(T)
+	if !ok {
+		return t, &failure.AppError{
+			OriginalError: errors.New("context value is not compatible with expected type"),
+		}
+	}
+
+	return t, nil
 }

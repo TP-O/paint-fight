@@ -7,19 +7,20 @@ import (
 	"sync"
 
 	"github.com/gin-gonic/gin"
+	"github.com/supabase-community/gotrue-go"
 )
 
 type Middleware struct {
-	secretKey     string
+	supabaseAuth  gotrue.Client
 	playerService *player.Service
 }
 
 var middleware *Middleware
 
-func NewMiddleware(secretKey string, playerService *player.Service) *Middleware {
+func NewMiddleware(supabaseAuth gotrue.Client, playerService *player.Service) *Middleware {
 	sync.OnceFunc(func() {
 		middleware = &Middleware{
-			secretKey,
+			supabaseAuth,
 			playerService,
 		}
 	})()

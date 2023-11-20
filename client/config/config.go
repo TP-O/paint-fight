@@ -12,7 +12,7 @@ type configLoader interface {
 
 type config struct {
 	App        `mapstructure:"app"`
-	Secret     `mapstructure:"secret"`
+	Supabase   `mapstructure:"supabase"`
 	PostgreSQL `mapstructure:"postgresql"`
 }
 
@@ -21,7 +21,7 @@ var cfg *config
 // loadDefaultConfig loads the default config values.
 func loadDefaultConfig(cfg *config) {
 	cfg.App.loadDefault()
-	cfg.Secret.loadDefault()
+	cfg.Supabase.loadDefault()
 	cfg.PostgreSQL.loadDefault()
 }
 
@@ -42,10 +42,6 @@ func Load(path string) *config {
 		loadDefaultConfig(cfg)
 		if err := viper.Unmarshal(cfg); err != nil {
 			log.Panic(err)
-		}
-
-		if len(cfg.Secret.Auth) < 32 {
-			log.Panicf("The secret key is insecure: %s", cfg.Secret.Auth)
 		}
 	}
 

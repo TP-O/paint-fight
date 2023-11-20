@@ -5,6 +5,7 @@ import (
 	"client/infra/entrypoint/api"
 	"client/infra/entrypoint/middleware"
 	"client/infra/persistence/pg"
+	"client/infra/supabase"
 	"client/internal/service/player"
 	"client/pkg/logger"
 	"context"
@@ -47,8 +48,10 @@ func main() {
 	router := gin.Default()
 	apiGroup := router.Group("/")
 
+	supabase := supabase.New(cfg.Supabase)
+
 	playerService := player.NewService(pgDb)
-	middleware := middleware.NewMiddleware(cfg.Secret.Auth, playerService)
+	middleware := middleware.NewMiddleware(supabase.Auth(), playerService)
 
 	apiServer := api.New(
 		cfg.App,

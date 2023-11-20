@@ -6,13 +6,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"github.com/o1egl/paseto"
 )
 
-func (m Middleware) DecryptPasetoToken(ctx *gin.Context) {
-	var payload paseto.JSONToken
+func (m Middleware) Authenticate(ctx *gin.Context) {
+	authedClient := m.supabaseAuth.WithToken(
+		ctx.Request.Header.Get("Authorization"),
+	)
 
-	err := paseto.NewV2().Decrypt("", []byte(m.secretKey), &payload, nil)
+	user, err := authedClient.GetUser()
 	if err != nil {
 		m.Error(ctx, &failure.AppError{
 			HttpStatus:    http.StatusUnauthorized,
@@ -22,6 +23,6 @@ func (m Middleware) DecryptPasetoToken(ctx *gin.Context) {
 		return
 	}
 
-	ctx.Set(constant.UserIdContextKey, payload.Subject)
+	ctx.Set(constant.UserContextKey, user)
 	ctx.Next()
 }
