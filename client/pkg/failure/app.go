@@ -68,6 +68,5 @@ func trace() string {
 	n := runtime.Callers(3, pc)
 	frames := runtime.CallersFrames(pc[:n])
 	frame, _ := frames.Next()
-	// TODO: return more than 1 trace line
 	return fmt.Sprintf("\t %s:%d | %s\n", filepath.Base(frame.File), frame.Line, frame.Function)
 }

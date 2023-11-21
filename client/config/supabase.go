@@ -3,8 +3,8 @@ package config
 import "github.com/spf13/viper"
 
 type Supabase struct {
-	ID       string `mapstructure:"id"`
-	CanonKey string `mapstructure:"supabase"`
+	ID      string `mapstructure:"id"`
+	AnonKey string `mapstructure:"anonkey"`
 }
 
 var _ configLoader = (*Supabase)(nil)

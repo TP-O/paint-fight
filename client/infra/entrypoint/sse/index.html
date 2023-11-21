@@ -12,12 +12,7 @@
 
 <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
 <script>
-  const token = "hello"
-  const stream = new EventSource("stream", {
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
+  const stream = new EventSource("stream?token=eyJhbGciOiJIUzI1NiIsImtpZCI6IlhYYTV1dXNlUjNCODREL0wiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzAwNTUzNjc5LCJpYXQiOjE3MDA1NTAwNzksImlzcyI6Imh0dHBzOi8vYmZlZWx5Y2VucGRqcG5id2hzYWQuc3VwYWJhc2UuY28vYXV0aC92MSIsInN1YiI6IjExMWI0MGRjLTk5N2ItNDEzNi1iNDRmLThjMTc5MGQwZTk4NSIsImVtYWlsIjoibGV0cmFucGhvbmcyMDEyMjAwMUBnbWFpbC5jb20iLCJwaG9uZSI6IiIsImFwcF9tZXRhZGF0YSI6eyJwcm92aWRlciI6ImVtYWlsIiwicHJvdmlkZXJzIjpbImVtYWlsIl19LCJ1c2VyX21ldGFkYXRhIjp7fSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTcwMDU1MDA3OX1dLCJzZXNzaW9uX2lkIjoiOWQ0ZjEyOTEtZGJkZC00NTZiLWEzZmItMTYxMDYyNjk1ODI4In0.bscXDVetLw5QK67YbIIUtJPJE4MGEpM2M1eQDoVTk7M");
   stream.addEventListener("message", function (e) {
     $('.event-data').append(e.data + "</br>")
   });

@@ -18,7 +18,7 @@ func New(cfg config.Supabase) *Supabase {
 		supabase = &Supabase{
 			gotrue.New(
 				cfg.ID,
-				cfg.CanonKey,
+				cfg.AnonKey,
 			),
 		}
 	})()
