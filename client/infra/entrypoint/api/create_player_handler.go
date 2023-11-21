@@ -5,6 +5,7 @@ import (
 	"client/internal/dto"
 	"client/internal/entity"
 	"client/internal/presenter"
+	"client/pkg/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -26,7 +27,7 @@ func (a Api) CreatePlayer(ctx *gin.Context) {
 		return
 	}
 
-	user, err = GetCtx[gotruetype.User](ctx, constant.UserContextKey)
+	user, err = util.GetCtx[gotruetype.User](ctx, constant.UserContextKey)
 	if err != nil {
 		return
 	}

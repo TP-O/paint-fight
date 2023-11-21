@@ -24,5 +24,6 @@ func (m Middleware) Authenticate(ctx *gin.Context) {
 	}
 
 	ctx.Set(constant.UserContextKey, user)
+	ctx.Set(constant.UserIDContextKey, user.ID.String())
 	ctx.Next()
 }

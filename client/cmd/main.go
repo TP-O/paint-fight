@@ -4,6 +4,7 @@ import (
 	"client/config"
 	"client/infra/entrypoint/api"
 	"client/infra/entrypoint/middleware"
+	"client/infra/entrypoint/sse"
 	"client/infra/persistence/pg"
 	"client/infra/supabase"
 	"client/internal/service/player"
@@ -46,7 +47,7 @@ func main() {
 	)
 
 	router := gin.Default()
-	apiGroup := router.Group("/")
+	apiGroup := router.Group("/api")
 
 	supabase := supabase.New(cfg.Supabase)
 
@@ -59,6 +60,9 @@ func main() {
 		playerService,
 	)
 	apiServer.UseRouter(apiGroup)
+
+	sseServer := sse.New(middleware)
+	sseServer.UseRouter(router.Group("/sse"))
 
 	server := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.App.Port),
