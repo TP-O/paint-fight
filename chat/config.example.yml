@@ -1,0 +1,12 @@
+app:
+  env: development
+  debug: true
+  port: 8080
+  secret:
+redis:
+  host: redis
+  port: 6379
+  password: redis_pass
+supabase:
+  url:
+  serviceRoleKey:
