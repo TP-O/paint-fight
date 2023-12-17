@@ -1,5 +1,5 @@
 import { fileLoader } from 'nest-typed-config';
-import { RootConfig } from 'src/config/config';
+import { RootConfig } from 'src/config/root';
 
 let config: RootConfig;
 

@@ -4,6 +4,8 @@ import { AppConfig } from 'src/config/app';
 import { AppEnv } from 'src/enum/app';
 import { createLogger, format, transports } from 'winston';
 
+// Consider whether to write log to file or not
+
 const writer = createLogger({
   format: format.combine(
     format.errors({ stack: true }),

@@ -1,10 +1,4 @@
-import {
-  Injectable,
-  UseFilters,
-  UseInterceptors,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { Injectable, UseFilters, UseInterceptors, UsePipes, ValidationPipe } from '@nestjs/common';
 import {
   ConnectedSocket,
   GatewayMetadata,
@@ -47,16 +41,16 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    * @param client
    */
   async handleConnection(client: Socket): Promise<void> {
-    await this.chatService.connect(this.server, client);
+    await this.chatService.connect(client);
   }
 
   /**
-   * Remove player state after disconnection.
+   * Clear player state after disconnection.
    *
    * @param client
    */
   async handleDisconnect(client: Socket): Promise<void> {
-    await this.chatService.disconnect(this.server, client);
+    await this.chatService.disconnect(client);
   }
 
   /**
@@ -82,10 +76,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @UseInterceptors(new EventBindingInterceptor(ListenEvent.RoomMessage))
   @SubscribeMessage(ListenEvent.RoomMessage)
-  async sendRoomMesage(
-    @ConnectedSocket() client: Socket,
-    @MessageBody() payload: SendRoomMessageDto,
-  ): Promise<void> {
+  async sendRoomMesage(@ConnectedSocket() client: Socket, @MessageBody() payload: SendRoomMessageDto): Promise<void> {
     await this.chatService.sendRoomMessage(this.server, client, payload);
   }
 }

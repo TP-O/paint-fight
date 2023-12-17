@@ -6,6 +6,8 @@ import { EmitEvent } from 'src/module/chat/chat.enum';
 import { EmitEventMap } from 'src/module/chat/chat.type';
 import { LoggerService } from 'src/service/logger';
 
+// TODO: error should include error key or code
+
 /**
  * Filter all unexpected exceptions.
  */

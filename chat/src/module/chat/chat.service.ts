@@ -7,29 +7,26 @@ import { LoggerService } from 'src/service/logger';
 import { User } from '@supabase/supabase-js';
 import { SendPrivateMessageDto } from './dto/send-private-message';
 import { SendRoomMessageDto } from './dto/send-room-message';
+import { RedisService } from 'src/external/redis';
+import { REDIS } from 'src/constant/redis';
 
 @Injectable()
 export class ChatService {
   constructor(
     private authService: AuthService,
     private logger: LoggerService,
+    private redis: RedisService,
   ) {
     this.logger.setContext(ChatService.name);
   }
 
   /**
    * Connect the client.
-   *
-   * @param server websocket server.
-   * @param client socket client.
    */
-  async connect(
-    server: Server<EmitEventMap>,
-    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { id: string }>,
-  ): Promise<void> {
+  async connect(client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { userId: string }>): Promise<void> {
     try {
-      const user = await this._validateConnection(server, client);
-      client.data.id = user.id;
+      const user = await this._verifyClient(client);
+      client.data.userId = user.id;
     } catch (error: any) {
       client.emit(EmitEvent.Error, {
         event: ListenEvent.Connect,
@@ -40,62 +37,28 @@ export class ChatService {
   }
 
   /**
-   * Check if the connection satisfies some sepecific conditions
-   * before allowing the connection.
-   *
-   * @param server websocket server.
-   * @param client socket client.
+   * Check some rules to verify the client. Return user data if successful.
    */
-  private async _validateConnection(
-    server: Server<EmitEventMap>,
-    client: Socket,
-  ): Promise<User> {
-    const user = await this._validateAuthorization(
-      client.handshake.headers.authorization ?? '',
-    );
+  private async _verifyClient(client: Socket): Promise<User> {
+    const token = String(client.handshake.headers.authorization).replace('Bearer ', '');
+    if (!token) {
+      throw new UnauthorizedException('Token is required!');
+    }
+    const user = await this.authService.getUser(token);
 
-    // TODO: check duplicate login
-
-    // const sid = await this.playerService.getSocketId(player.id);
-    // if (sid) {
-    //   server.to(sid).emit(EmitEvent.Error, {
-    //     event: ListenEvent.Connect,
-    //     message: 'This account is being connected by someone else!',
-    //   });
-    //   server.to(sid).disconnectSockets();
-    //   this.disconnect(server, client);
-    // }
+    if (await this.redis.client.getset(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, user.id)) {
+      throw new Error('This account is being connected by someone else!');
+    }
 
     return user;
   }
 
   /**
-   * Verify token.
-   *
-   * @param headerAuthorization
-   */
-  private async _validateAuthorization(
-    headerAuthorization: string,
-  ): Promise<User> {
-    const token = String(headerAuthorization).replace('Bearer ', '');
-    if (!token) {
-      throw new UnauthorizedException('Missing access token!');
-    }
-
-    return this.authService.getUser(token);
-  }
-
-  /**
    * Disconnect the client.
-   *
-   * @param server websocket server.
-   * @param client socket client.
    */
   async disconnect(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    server: Server<EmitEventMap>,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { id: string }>,
+    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { userId: string }>,
   ): Promise<void> {
     //
   }
