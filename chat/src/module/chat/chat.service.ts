@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { AuthService } from '../../service/auth';
 import { EmitEvent, ListenEvent } from './chat.enum';
@@ -9,6 +9,10 @@ import { SendPrivateMessageDto } from './dto/send-private-message';
 import { SendRoomMessageDto } from './dto/send-room-message';
 import { RedisService } from 'src/external/redis';
 import { REDIS } from 'src/constant/redis';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { CACHE } from 'src/constant/cache';
+import { Time } from 'src/enum/time';
 
 @Injectable()
 export class ChatService {
@@ -16,6 +20,7 @@ export class ChatService {
     private authService: AuthService,
     private logger: LoggerService,
     private redis: RedisService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {
     this.logger.setContext(ChatService.name);
   }
@@ -50,6 +55,7 @@ export class ChatService {
       throw new Error('This account is being connected by someone else!');
     }
 
+    await this.cacheManager.set(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, client.id, 5 * Time.Miniute);
     return user;
   }
 
@@ -79,11 +85,21 @@ export class ChatService {
       return;
     }
 
-    // const sid = await this.playerService.getSocketId(payload.receiverId);
-    // if (!sid) {
-    //   throw new BadRequestException('This player is offline!');
-    // }
-    const sid = '';
+    let sid = await this.cacheManager.get<string | null>(
+      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
+    );
+    if (!sid) {
+      sid = await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`);
+      if (!sid) {
+        throw new BadRequestException('This player is offline!');
+      } else {
+        await this.cacheManager.set(
+          `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
+          client.id,
+          5 * Time.Miniute,
+        );
+      }
+    }
 
     server.to(sid).emit(EmitEvent.PrivateMessage, {
       ...payload,
