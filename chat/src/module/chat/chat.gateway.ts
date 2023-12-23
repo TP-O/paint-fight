@@ -65,7 +65,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: SendPrivateMessageDto,
   ): Promise<void> {
-    await this.chatService.sendPrivateMessage(this.server, client, payload);
+    await this.chatService.sendPrivateMessage(client, payload);
   }
 
   /**

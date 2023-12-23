@@ -71,13 +71,8 @@ export class ChatService {
 
   /**
    * Send a private message to friend.
-   *
-   * @param server
-   * @param client
-   * @param payload
    */
   async sendPrivateMessage(
-    server: Server<EmitEventMap>,
     client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { id: string }>,
     payload: SendPrivateMessageDto,
   ): Promise<void> {
@@ -101,7 +96,7 @@ export class ChatService {
       }
     }
 
-    server.to(sid).emit(EmitEvent.PrivateMessage, {
+    client.to(sid).emit(EmitEvent.PrivateMessage, {
       ...payload,
       senderId: client.data.id,
     });

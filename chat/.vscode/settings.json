@@ -1,9 +1,0 @@
-{
-  "editor.codeActionsOnSave": {
-    "source.fixAll": true,
-  },
-  "[typescript]": {
-    "editor.formatOnSave": false
-  },
-  "git.ignoreLimitWarning": true,
-}

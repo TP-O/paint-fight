@@ -38,10 +38,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     }
   }
 
-  private _handleWsException(
-    exception: Error,
-    host: ArgumentsHost,
-  ): LoggedError {
+  private _handleWsException(exception: Error, host: ArgumentsHost): LoggedError {
     const client = host.switchToWs().getClient() as Socket<EmitEventMap>;
     const loggedError: LoggedError = {
       name: exception.name,
@@ -59,10 +56,7 @@ export class AllExceptionFilter implements ExceptionFilter {
     return loggedError;
   }
 
-  private _handleHttpException(
-    exception: Error,
-    host: ArgumentsHost,
-  ): LoggedError {
+  private _handleHttpException(exception: Error, host: ArgumentsHost): LoggedError {
     const response = host.switchToHttp().getResponse<FastifyReply>();
     const request = host.switchToHttp().getRequest<FastifyRequest>();
     const loggedError: LoggedError = {
