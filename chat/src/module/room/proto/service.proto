@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package room;
+
+import "add_player_to_room.proto";
+import "remove_player_from_room.proto";
+
+service RoomService {
+  rpc RemovePlayerFromRoom (RemovePlayerFromRoomRequest) returns (RemovePlayerFromRoomResponse) {}
+  rpc AddPlayerToRoom (AddPlayerToRoomRequest) returns (AddPlayerToRoomResponse) {}
+}

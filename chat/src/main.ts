@@ -5,12 +5,30 @@ import { ValidationPipe } from '@nestjs/common';
 import { AppConfig } from './config/app';
 import { ChatAdapter } from './module/chat/chat.adapter';
 import { AllExceptionFilter } from './filter/all-exception';
-import { HttpExceptionFilter } from './filter/http-exception';
+import { RpcExceptionFilter } from './filter/rpc-exception';
 import { RedisService } from './external/redis';
 import { LoggerService } from './service/logger';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { join } from 'path';
+import { addReflectionToGrpcConfig } from 'nestjs-grpc-reflection';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
+  // TODO: secure grpc connection
+  app.connectMicroservice<MicroserviceOptions>(
+    addReflectionToGrpcConfig({
+      transport: Transport.GRPC,
+      options: {
+        package: ['room'],
+        protoPath: [join(__dirname, './module/room/proto/service.proto')],
+        gracefulShutdown: true,
+      },
+    }),
+    {
+      inheritAppConfig: true,
+    },
+  );
+
   const appConfig = app.get(AppConfig);
 
   app.enableCors({
@@ -23,8 +41,7 @@ async function bootstrap() {
   await chatAdapter.connectToRedis();
   app.useWebSocketAdapter(chatAdapter);
 
-  app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new AllExceptionFilter(new LoggerService(appConfig)), new HttpExceptionFilter());
+  app.useGlobalFilters(new AllExceptionFilter(new LoggerService(appConfig)), new RpcExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -32,6 +49,7 @@ async function bootstrap() {
     }),
   );
 
+  await app.startAllMicroservices();
   await app.listen(appConfig.port, '0.0.0.0');
 }
 

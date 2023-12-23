@@ -27,3 +27,5 @@ USER node
 RUN npx pnpm install -P && npx prisma generate
 
 CMD [ "node", "/app" ]
+
+# TODO: add proto files to docker image

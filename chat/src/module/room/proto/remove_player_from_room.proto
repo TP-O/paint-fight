@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package room;
+
+message RemovePlayerFromRoomRequest {
+  string room_id = 1;
+  string player_id = 2;
+}
+
+message RemovePlayerFromRoomResponse {
+  //
+}

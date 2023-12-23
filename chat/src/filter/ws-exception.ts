@@ -1,13 +1,7 @@
-import {
-  Catch,
-  ArgumentsHost,
-  BadRequestException,
-  HttpException,
-} from '@nestjs/common';
+import { Catch, ArgumentsHost, BadRequestException, HttpException } from '@nestjs/common';
 import { BaseWsExceptionFilter, WsException } from '@nestjs/websockets';
 import { Socket } from 'socket.io';
 import { EmitEventMap } from '../module/chat/chat.type';
-import { ErrorMessage } from 'src/type';
 import { EmitEvent } from '../module/chat/chat.enum';
 
 /**
@@ -20,7 +14,7 @@ import { EmitEvent } from '../module/chat/chat.enum';
 export class WsExceptionFilter extends BaseWsExceptionFilter {
   catch(exception: Error, host: ArgumentsHost): void {
     const client = host.switchToWs().getClient() as Socket<EmitEventMap>;
-    let message: ErrorMessage;
+    let message: any;
 
     if (exception instanceof BadRequestException) {
       message = (exception.getResponse() as Error).message;
