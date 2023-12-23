@@ -38,8 +38,7 @@
     "reflect-metadata": "^0.1.13",
     "rimraf": "^5.0.5",
     "rxjs": "^7.8.1",
-    "socket.io": "^4.7.2",
-    "winston": "^3.11.0"
+    "socket.io": "^4.7.2"
   },
   "devDependencies": {
     "@golevelup/ts-jest": "^0.4.0",

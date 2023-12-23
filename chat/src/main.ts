@@ -11,10 +11,8 @@ import { LoggerService } from './service/logger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
-  const config = app.get(AppConfig);
+  const appConfig = app.get(AppConfig);
 
-  const logger = new LoggerService(config);
-  app.useLogger(logger);
   app.enableCors({
     origin: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH'],
@@ -26,7 +24,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(chatAdapter);
 
   app.setGlobalPrefix('api/v1');
-  app.useGlobalFilters(new AllExceptionFilter(logger), new HttpExceptionFilter());
+  app.useGlobalFilters(new AllExceptionFilter(new LoggerService(appConfig)), new HttpExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -34,7 +32,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(config.port, '0.0.0.0');
+  await app.listen(appConfig.port, '0.0.0.0');
 }
 
 bootstrap();
