@@ -11,8 +11,10 @@ import { REDIS } from '@constant/redis';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CACHE } from '@constant/cache';
-import { Time } from '@enum/time';
 import { WsException } from '@nestjs/websockets';
+import { PublicError } from '@filter/public-error.error';
+import { Code } from '@enum/code';
+import { MillisecondsTime } from '@enum/time';
 
 @Injectable()
 export class ChatService {
@@ -47,7 +49,11 @@ export class ChatService {
       throw new WsException('This account is being connected by someone else!');
     }
 
-    await this.cacheManager.set(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id, 5 * Time.Miniute);
+    await this.cacheManager.set(
+      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`,
+      client.id,
+      5 * MillisecondsTime.Miniute,
+    );
     return player;
   }
 
@@ -81,7 +87,7 @@ export class ChatService {
         await this.cacheManager.set(
           `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
           client.id,
-          5 * Time.Miniute,
+          5 * MillisecondsTime.Miniute,
         );
       }
     }
@@ -101,14 +107,9 @@ export class ChatService {
       return;
     }
 
-    // const room = await this.roomService.get(payload.roomId);
-    // if (!room) {
-    //   throw new NotFoundException("Room doesn't exist!");
-    // }
-
-    // if (!room.memberIds.includes(client.data.id)) {
-    //   throw new ForbiddenException('You are not in this room!');
-    // }
+    if (client.rooms.has(payload.roomId)) {
+      throw new PublicError(Code.RoomDoesNotExist);
+    }
 
     client.to(payload.roomId).emit(EmitEvent.RoomMessage, {
       ...payload,
