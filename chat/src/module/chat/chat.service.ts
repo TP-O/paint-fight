@@ -45,26 +45,29 @@ export class ChatService {
     }
     const player = await this.authService.getUser(token);
 
-    if (await this.redis.client.getset(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id)) {
+    if (await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`)) {
       throw new WsException('This account is being connected by someone else!');
     }
 
-    await this.cacheManager.set(
-      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`,
-      client.id,
-      5 * MillisecondsTime.Miniute,
-    );
+    this.redis.client
+      .set(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id, 'EX', MillisecondsTime.Forever)
+      .then(() =>
+        this.cacheManager.set(
+          `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`,
+          client.id,
+          MillisecondsTime.Forever,
+        ),
+      );
+
     return player;
   }
 
   /**
    * Disconnect the client.
    */
-  async disconnect(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    client: ChatSocket,
-  ): Promise<void> {
-    //
+  async disconnect(client: ChatSocket): Promise<void> {
+    await this.redis.client.del(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${client.data.playerId}`);
+    await this.cacheManager.del(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${client.data.playerId}`);
   }
 
   /**
@@ -83,18 +86,18 @@ export class ChatService {
       sid = await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`);
       if (!sid) {
         return;
-      } else {
-        await this.cacheManager.set(
-          `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
-          client.id,
-          5 * MillisecondsTime.Miniute,
-        );
       }
     }
 
+    this.cacheManager.set(
+      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
+      client.id,
+      MillisecondsTime.Forever,
+    );
+
     client.to(sid).emit(EmitEvent.PrivateMessage, {
-      ...payload,
       senderId: client.data.playerId,
+      content: payload.content,
     });
   }
 
@@ -112,8 +115,9 @@ export class ChatService {
     }
 
     client.to(payload.roomId).emit(EmitEvent.RoomMessage, {
-      ...payload,
       senderId: client.data.playerId,
+      roomId: payload.roomId,
+      content: payload.content,
     });
   }
 }

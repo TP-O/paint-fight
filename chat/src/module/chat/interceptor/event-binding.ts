@@ -5,7 +5,7 @@ import { ChatSocket } from '../chat.type';
 
 @Injectable()
 export class EventBindingInterceptor implements NestInterceptor {
-  constructor(private readonly event: ListenEvent) {}
+  constructor(private event: ListenEvent) {}
 
   async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
     const client = context.switchToWs().getClient<ChatSocket>();

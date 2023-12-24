@@ -7,5 +7,9 @@ export class SendRoomMessageDto {
 
   @IsString()
   @IsNotEmpty()
+  senderId!: string;
+
+  @IsString()
+  @IsNotEmpty()
   content!: string;
 }

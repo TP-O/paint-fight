@@ -16,6 +16,7 @@ import { join } from 'path';
       schema: RootConfig,
       load: loadConfig,
     }),
+    // TODO: reflect grpc in dev env
     GrpcReflectionModule.register(
       addReflectionToGrpcConfig({
         transport: Transport.GRPC,
