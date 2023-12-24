@@ -2,8 +2,8 @@ import { Controller, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common
 import { GrpcMethod } from '@nestjs/microservices';
 import { AddPlayerToRoomRequest, AddPlayerToRoomResponse } from './dto/add-player-to-room';
 import { RemovePlayerFromRoomRequest, RemovePlayerFromRoomResponse } from './dto/remove-player-from-room';
-import { AllExceptionFilter } from 'src/filter/all-exception.filter';
-import { GrpcExceptionFilter } from 'src/filter/grpc-exception.filter';
+import { AllExceptionFilter } from '@filter/all-exception.filter';
+import { GrpcExceptionFilter } from '@filter/grpc-exception.filter';
 
 @Controller()
 @UseFilters(AllExceptionFilter, GrpcExceptionFilter)

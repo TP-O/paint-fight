@@ -1,4 +1,4 @@
-import { Code } from 'src/enum/code';
+import { Code } from '@enum/code';
 
 /**
  * The error is disclosed to clients.

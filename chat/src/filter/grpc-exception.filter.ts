@@ -1,8 +1,8 @@
 import { ExceptionFilter, Catch, BadRequestException } from '@nestjs/common';
 import { Observable, throwError } from 'rxjs';
 import { status } from '@grpc/grpc-js';
-import { Code } from 'src/enum/code';
-import { GrpcErrResponse } from 'src/type';
+import { Code } from '@enum/code';
+import { GrpcErrResponse } from '@types';
 import { PublicError } from './public-error.error';
 
 /**

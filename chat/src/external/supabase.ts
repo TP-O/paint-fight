@@ -1,7 +1,7 @@
+import { SupabaseConfig } from '@config/supabase';
 import { Injectable } from '@nestjs/common';
 import { SupabaseClient, createClient } from '@supabase/supabase-js';
 import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/SupabaseAuthClient';
-import { SupabaseConfig } from 'src/config/supabase';
 
 // TODO: secure supabase connection
 @Injectable()

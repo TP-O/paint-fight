@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
-import { AuthService } from 'src/service/auth';
-import { LoggerService } from 'src/service/logger';
-import { SupabaseService } from 'src/external/supabase';
-import { RedisService } from 'src/external/redis';
+import { AuthService } from '@service/auth';
+import { LoggerService } from '@service/logger';
+import { SupabaseService } from '@external/supabase';
+import { RedisService } from '@external/redis';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({

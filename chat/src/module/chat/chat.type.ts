@@ -1,5 +1,6 @@
-import { ErrResponse } from 'src/type';
-import { EmitEvent } from './chat.enum';
+import { ErrResponse } from '@types';
+import { EmitEvent, ListenEvent } from './chat.enum';
+import { Server, Socket } from 'socket.io';
 
 type SuccessResponse = {
   message: string;
@@ -20,3 +21,13 @@ export type EmitEventMap = {
   [EmitEvent.PrivateMessage]: (data: PrivateMessageData) => void;
   [EmitEvent.RoomMessage]: (data: RoomMessageData) => void;
 };
+
+type ChatSocketData = {
+  playerId: string;
+};
+
+export type ChatSocket = Socket<any, EmitEventMap, any, ChatSocketData> & {
+  event: ListenEvent;
+};
+
+export type ChatSocketServer = Server<any, EmitEventMap, any, ChatSocketData>;

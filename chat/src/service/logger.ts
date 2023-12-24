@@ -1,6 +1,6 @@
 import { ConsoleLogger, Injectable, Scope } from '@nestjs/common';
-import { AppConfig } from 'src/config/app';
-import { AppEnv } from 'src/enum/app';
+import { AppConfig } from '@config/app';
+import { AppEnv } from '@enum/app';
 
 @Injectable({
   scope: Scope.TRANSIENT,

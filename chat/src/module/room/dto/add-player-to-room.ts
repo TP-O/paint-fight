@@ -1,5 +1,5 @@
 import { IsNotEmpty, IsString } from 'class-validator';
-import { OkResponse } from 'src/type';
+import { OkResponse } from '@types';
 
 export class AddPlayerToRoomRequest {
   @IsString()

@@ -1,18 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Server, Socket } from 'socket.io';
 import { AuthService } from '../../service/auth';
 import { EmitEvent } from './chat.enum';
-import { EmitEventMap } from './chat.type';
-import { LoggerService } from 'src/service/logger';
+import { ChatSocket } from './chat.type';
+import { LoggerService } from '@service/logger';
 import { User } from '@supabase/supabase-js';
 import { SendPrivateMessageDto } from './dto/send-private-message';
 import { SendRoomMessageDto } from './dto/send-room-message';
-import { RedisService } from 'src/external/redis';
-import { REDIS } from 'src/constant/redis';
+import { RedisService } from '@external/redis';
+import { REDIS } from '@constant/redis';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
-import { CACHE } from 'src/constant/cache';
-import { Time } from 'src/enum/time';
+import { CACHE } from '@constant/cache';
+import { Time } from '@enum/time';
 import { WsException } from '@nestjs/websockets';
 
 @Injectable()
@@ -29,27 +28,27 @@ export class ChatService {
   /**
    * Connect the client.
    */
-  async connect(client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { userId: string }>): Promise<void> {
-    const user = await this._verifyClient(client);
-    client.data.userId = user.id;
+  async connect(client: ChatSocket): Promise<void> {
+    const player = await this._verifyClient(client);
+    client.data.playerId = player.id;
   }
 
   /**
-   * Check some rules to verify the client. Return user data if successful.
+   * Check some rules to verify the client. Return player data if successful.
    */
-  private async _verifyClient(client: Socket): Promise<User> {
+  private async _verifyClient(client: ChatSocket): Promise<User> {
     const token = String(client.handshake.headers.authorization).replace('Bearer ', '');
     if (!token) {
       throw new WsException('Token is required!');
     }
-    const user = await this.authService.getUser(token);
+    const player = await this.authService.getUser(token);
 
-    if (await this.redis.client.getset(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, user.id)) {
+    if (await this.redis.client.getset(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id)) {
       throw new WsException('This account is being connected by someone else!');
     }
 
-    await this.cacheManager.set(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, client.id, 5 * Time.Miniute);
-    return user;
+    await this.cacheManager.set(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id, 5 * Time.Miniute);
+    return player;
   }
 
   /**
@@ -57,7 +56,7 @@ export class ChatService {
    */
   async disconnect(
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { userId: string }>,
+    client: ChatSocket,
   ): Promise<void> {
     //
   }
@@ -65,11 +64,8 @@ export class ChatService {
   /**
    * Send a private message to friend.
    */
-  async sendPrivateMessage(
-    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { id: string }>,
-    payload: SendPrivateMessageDto,
-  ): Promise<void> {
-    if (!client.data.id) {
+  async sendPrivateMessage(client: ChatSocket, payload: SendPrivateMessageDto): Promise<void> {
+    if (!client.data.playerId) {
       client.disconnect();
       return;
     }
@@ -92,23 +88,15 @@ export class ChatService {
 
     client.to(sid).emit(EmitEvent.PrivateMessage, {
       ...payload,
-      senderId: client.data.id,
+      senderId: client.data.playerId,
     });
   }
 
   /**
    * Send a message to joined room.
-   *
-   * @param server
-   * @param client
-   * @param payload
    */
-  async sendRoomMessage(
-    server: Server<EmitEventMap>,
-    client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { id: string }>,
-    payload: SendRoomMessageDto,
-  ): Promise<void> {
-    if (!client.data.id) {
+  async sendRoomMessage(client: ChatSocket, payload: SendRoomMessageDto): Promise<void> {
+    if (!client.data.playerId) {
       client.disconnect();
       return;
     }
@@ -122,9 +110,9 @@ export class ChatService {
     //   throw new ForbiddenException('You are not in this room!');
     // }
 
-    server.to(payload.roomId).emit(EmitEvent.RoomMessage, {
+    client.to(payload.roomId).emit(EmitEvent.RoomMessage, {
       ...payload,
-      senderId: client.data.id,
+      senderId: client.data.playerId,
     });
   }
 }

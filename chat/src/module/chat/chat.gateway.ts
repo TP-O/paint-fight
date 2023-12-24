@@ -9,15 +9,14 @@ import {
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { ListenEvent } from './chat.enum';
-import { EmitEventMap } from './chat.type';
-import { AllExceptionFilter } from 'src/filter/all-exception.filter';
+import { ChatSocket, ChatSocketServer } from './chat.type';
+import { AllExceptionFilter } from '@filter/all-exception.filter';
 import { EventBindingInterceptor } from './interceptor/event-binding';
 import { SendPrivateMessageDto } from './dto/send-private-message';
 import { SendRoomMessageDto } from './dto/send-room-message';
-import { WsExceptionFilter } from 'src/filter/ws-exception.filter';
+import { WsExceptionFilter } from '@filter/ws-exception.filter';
 
 @Injectable()
 @UseFilters(AllExceptionFilter, WsExceptionFilter)
@@ -31,7 +30,7 @@ import { WsExceptionFilter } from 'src/filter/ws-exception.filter';
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
-  readonly server!: Server<EmitEventMap>;
+  readonly server!: ChatSocketServer;
 
   constructor(private chatService: ChatService) {}
 
@@ -40,7 +39,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    *
    * @param client
    */
-  async handleConnection(client: Socket): Promise<void> {
+  async handleConnection(client: ChatSocket): Promise<void> {
     await this.chatService.connect(client);
   }
 
@@ -49,7 +48,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    *
    * @param client
    */
-  async handleDisconnect(client: Socket): Promise<void> {
+  async handleDisconnect(client: ChatSocket): Promise<void> {
     await this.chatService.disconnect(client);
   }
 
@@ -62,7 +61,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @UseInterceptors(new EventBindingInterceptor(ListenEvent.PrivateMessage))
   @SubscribeMessage(ListenEvent.PrivateMessage)
   async sendPrivateMessage(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: ChatSocket,
     @MessageBody() payload: SendPrivateMessageDto,
   ): Promise<void> {
     await this.chatService.sendPrivateMessage(client, payload);
@@ -76,7 +75,10 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
    */
   @UseInterceptors(new EventBindingInterceptor(ListenEvent.RoomMessage))
   @SubscribeMessage(ListenEvent.RoomMessage)
-  async sendRoomMesage(@ConnectedSocket() client: Socket, @MessageBody() payload: SendRoomMessageDto): Promise<void> {
-    await this.chatService.sendRoomMessage(this.server, client, payload);
+  async sendRoomMesage(
+    @ConnectedSocket() client: ChatSocket,
+    @MessageBody() payload: SendRoomMessageDto,
+  ): Promise<void> {
+    await this.chatService.sendRoomMessage(client, payload);
   }
 }

@@ -1,16 +1,16 @@
 import { status as GrpcStatus } from '@grpc/grpc-js';
 
-export type Response = {
+type MyResponse = {
   ok: boolean;
   code: string;
 };
 
-export type OkResponse<T = undefined> = Response & {
+export declare type OkResponse<T = undefined> = MyResponse & {
   ok: true;
   data: T;
 };
 
-export type ErrResponse = Response & {
+export type ErrResponse = MyResponse & {
   ok: false;
   error?: string | string[];
 };

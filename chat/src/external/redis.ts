@@ -1,7 +1,7 @@
+import { RedisConfig } from '@config/redis';
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
+import { LoggerService } from '@service/logger';
 import { Redis } from 'ioredis';
-import { LoggerService } from '../service/logger';
-import { RedisConfig } from 'src/config/redis';
 
 // TODO: secure redis connection
 @Injectable()

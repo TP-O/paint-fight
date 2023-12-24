@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RoomController } from './room.controller';
-import { LoggerService } from 'src/service/logger';
+import { LoggerService } from '@service/logger';
 
 @Module({
   controllers: [RoomController],

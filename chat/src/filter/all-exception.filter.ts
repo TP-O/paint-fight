@@ -4,13 +4,12 @@ import { WsArgumentsHost } from '@nestjs/common/interfaces';
 import { RpcException } from '@nestjs/microservices';
 import { WsException } from '@nestjs/websockets';
 import { Observable, throwError } from 'rxjs';
-import { Socket } from 'socket.io';
-import { EmitEvent } from 'src/module/chat/chat.enum';
-import { EmitEventMap } from 'src/module/chat/chat.type';
-import { LoggerService } from 'src/service/logger';
+import { EmitEvent } from '@module/chat/chat.enum';
+import { ChatSocket } from '@module/chat/chat.type';
+import { LoggerService } from '@service/logger';
 import { status as grpcStatus } from '@grpc/grpc-js';
-import { Code } from 'src/enum/code';
-import { ErrResponse } from 'src/type';
+import { Code } from '@enum/code';
+import { ErrResponse } from '@types';
 
 /**
  * Filter all unexpected exceptions. All exceptions handled by this filter
@@ -35,7 +34,7 @@ export class AllExceptionFilter implements ExceptionFilter {
   }
 
   private _handleWsException(host: WsArgumentsHost): void {
-    const client = host.getClient() as Socket<EmitEventMap>;
+    const client = host.getClient() as ChatSocket;
     client.emit(EmitEvent.Error, {
       ok: false,
       code: `${client.event}.${Code.Unknown}`,

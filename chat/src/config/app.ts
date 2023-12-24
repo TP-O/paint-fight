@@ -1,12 +1,4 @@
-import {
-  IsBoolean,
-  IsIn,
-  IsNumber,
-  IsString,
-  Max,
-  Min,
-  MinLength,
-} from 'class-validator';
+import { IsBoolean, IsIn, IsNumber, IsString, Max, Min, MinLength } from 'class-validator';
 import { AppEnv } from 'src/enum/app';
 
 export class AppConfig {
