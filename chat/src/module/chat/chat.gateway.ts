@@ -13,11 +13,11 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 import { ListenEvent } from './chat.enum';
 import { EmitEventMap } from './chat.type';
-import { WsExceptionFilter } from 'src/filter/ws-exception';
-import { AllExceptionFilter } from 'src/filter/all-exception';
+import { AllExceptionFilter } from 'src/filter/all-exception.filter';
 import { EventBindingInterceptor } from './interceptor/event-binding';
 import { SendPrivateMessageDto } from './dto/send-private-message';
 import { SendRoomMessageDto } from './dto/send-room-message';
+import { WsExceptionFilter } from 'src/filter/ws-exception.filter';
 
 @Injectable()
 @UseFilters(AllExceptionFilter, WsExceptionFilter)

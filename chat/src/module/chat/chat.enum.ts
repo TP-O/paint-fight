@@ -1,5 +1,4 @@
 export enum ListenEvent {
-  Connect = 'connect',
   PrivateMessage = 'private_message',
   RoomMessage = 'room_message',
 }

@@ -1,25 +1,21 @@
-import { Controller } from '@nestjs/common';
-import { GrpcMethod, RpcException } from '@nestjs/microservices';
+import { Controller, UseFilters, UsePipes, ValidationPipe } from '@nestjs/common';
+import { GrpcMethod } from '@nestjs/microservices';
 import { AddPlayerToRoomRequest, AddPlayerToRoomResponse } from './dto/add-player-to-room';
 import { RemovePlayerFromRoomRequest, RemovePlayerFromRoomResponse } from './dto/remove-player-from-room';
-import { status } from '@grpc/grpc-js';
+import { AllExceptionFilter } from 'src/filter/all-exception.filter';
+import { GrpcExceptionFilter } from 'src/filter/grpc-exception.filter';
 
 @Controller()
+@UseFilters(AllExceptionFilter, GrpcExceptionFilter)
+@UsePipes(
+  new ValidationPipe({
+    whitelist: true,
+  }),
+)
 export class RoomController {
   @GrpcMethod('RoomService', 'AddPlayerToRoom')
   addPlayerToRoom(data: AddPlayerToRoomRequest): AddPlayerToRoomResponse {
     console.log(data);
-
-    // throw new RpcException({
-    //   code: 'YOUR_CUSTOM_ERROR_CODE',
-    //   message: 'Your custom error message',
-    //   // You can also include additional details in the argument object
-    //   details: {
-    //     // additional properties
-    //     a: 1,
-    //     b: 2,
-    //   },
-    // });
 
     return {
       ok: true,

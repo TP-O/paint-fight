@@ -1,7 +1,7 @@
-import { BadRequestException, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
 import { AuthService } from '../../service/auth';
-import { EmitEvent, ListenEvent } from './chat.enum';
+import { EmitEvent } from './chat.enum';
 import { EmitEventMap } from './chat.type';
 import { LoggerService } from 'src/service/logger';
 import { User } from '@supabase/supabase-js';
@@ -13,6 +13,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CACHE } from 'src/constant/cache';
 import { Time } from 'src/enum/time';
+import { WsException } from '@nestjs/websockets';
 
 @Injectable()
 export class ChatService {
@@ -29,16 +30,8 @@ export class ChatService {
    * Connect the client.
    */
   async connect(client: Socket<EmitEventMap, EmitEventMap, EmitEventMap, { userId: string }>): Promise<void> {
-    try {
-      const user = await this._verifyClient(client);
-      client.data.userId = user.id;
-    } catch (error: any) {
-      client.emit(EmitEvent.Error, {
-        event: ListenEvent.Connect,
-        message: error.message,
-      });
-      client.disconnect();
-    }
+    const user = await this._verifyClient(client);
+    client.data.userId = user.id;
   }
 
   /**
@@ -47,12 +40,12 @@ export class ChatService {
   private async _verifyClient(client: Socket): Promise<User> {
     const token = String(client.handshake.headers.authorization).replace('Bearer ', '');
     if (!token) {
-      throw new UnauthorizedException('Token is required!');
+      throw new WsException('Token is required!');
     }
     const user = await this.authService.getUser(token);
 
     if (await this.redis.client.getset(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, user.id)) {
-      throw new Error('This account is being connected by someone else!');
+      throw new WsException('This account is being connected by someone else!');
     }
 
     await this.cacheManager.set(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${user.id}`, client.id, 5 * Time.Miniute);
@@ -77,6 +70,7 @@ export class ChatService {
     payload: SendPrivateMessageDto,
   ): Promise<void> {
     if (!client.data.id) {
+      client.disconnect();
       return;
     }
 
@@ -86,7 +80,7 @@ export class ChatService {
     if (!sid) {
       sid = await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`);
       if (!sid) {
-        throw new BadRequestException('This player is offline!');
+        return;
       } else {
         await this.cacheManager.set(
           `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
@@ -115,6 +109,7 @@ export class ChatService {
     payload: SendRoomMessageDto,
   ): Promise<void> {
     if (!client.data.id) {
+      client.disconnect();
       return;
     }
 

@@ -1,3 +1,4 @@
+import { ErrResponse } from 'src/type';
 import { EmitEvent } from './chat.enum';
 
 type SuccessResponse = {
@@ -14,7 +15,7 @@ type RoomMessageData = PrivateMessageData & {
 };
 
 export type EmitEventMap = {
-  [EmitEvent.Error]: (response: any) => void;
+  [EmitEvent.Error]: (response: ErrResponse) => void;
   [EmitEvent.Success]: (response: SuccessResponse) => void;
   [EmitEvent.PrivateMessage]: (data: PrivateMessageData) => void;
   [EmitEvent.RoomMessage]: (data: RoomMessageData) => void;

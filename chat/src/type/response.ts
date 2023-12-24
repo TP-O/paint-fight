@@ -1,4 +1,4 @@
-import { RequireOnlyOne } from './util';
+import { status as GrpcStatus } from '@grpc/grpc-js';
 
 export type Response = {
   ok: boolean;
@@ -10,10 +10,13 @@ export type OkResponse<T = undefined> = Response & {
   data: T;
 };
 
-export type ErrResponse = Response &
-  RequireOnlyOne<{
-    error: string;
-    fieldErrors: string[];
-  }> & {
-    ok: false;
-  };
+export type ErrResponse = Response & {
+  ok: false;
+  error?: string | string[];
+};
+
+export type GrpcErrResponse = {
+  code: GrpcStatus;
+  message: string;
+  details: ErrResponse;
+};
