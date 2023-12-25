@@ -5,8 +5,7 @@ import { RootConfig } from './config/root';
 import { loadConfig } from './utils/load-config';
 import { RoomModule } from './module/room/room.module';
 import { GrpcReflectionModule, addReflectionToGrpcConfig } from 'nestjs-grpc-reflection';
-import { Transport } from '@nestjs/microservices';
-import { join } from 'path';
+import { RoomServiceConfig } from '@config/microservices';
 
 @Module({
   imports: [
@@ -17,16 +16,7 @@ import { join } from 'path';
       load: loadConfig,
     }),
     // TODO: reflect grpc in dev env
-    GrpcReflectionModule.register(
-      addReflectionToGrpcConfig({
-        transport: Transport.GRPC,
-        options: {
-          package: ['room'],
-          protoPath: [join(__dirname, './module/room/proto/service.proto')],
-          gracefulShutdown: true,
-        },
-      }),
-    ),
+    GrpcReflectionModule.register(addReflectionToGrpcConfig(RoomServiceConfig)),
   ],
 })
 export class AppModule {}

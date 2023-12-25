@@ -12,25 +12,27 @@ import { PublicError } from './public-error.error';
 export class GrpcExceptionFilter implements ExceptionFilter {
   catch(exception: BadRequestException | PublicError): Observable<never> {
     return throwError((): GrpcErrResponse => {
-      let code: Code;
-      let error: string | string[];
       if (exception instanceof BadRequestException) {
-        code = Code.InvalidArgument;
-        error = (exception.getResponse() as any).message;
+        return {
+          code: status.INVALID_ARGUMENT,
+          message: Code.InvalidArgument,
+          details: {
+            ok: false,
+            code: Code.InvalidArgument,
+            error: (exception.getResponse() as any).message,
+          },
+        };
       } else {
-        code = exception.code;
-        error = exception.message;
+        return {
+          code: status.FAILED_PRECONDITION,
+          message: exception.code,
+          details: {
+            ok: false,
+            code: exception.code,
+            error: exception.message,
+          },
+        };
       }
-
-      return {
-        code: status.INVALID_ARGUMENT,
-        message: Code.InvalidArgument,
-        details: {
-          ok: false,
-          code,
-          error,
-        },
-      };
     });
   }
 }

@@ -3,8 +3,8 @@ import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
 import { AuthService } from '@service/auth';
 import { LoggerService } from '@service/logger';
-import { SupabaseService } from '@external/supabase';
-import { RedisService } from '@external/redis';
+import { SupabaseService } from '@external/supabase.service';
+import { RedisService } from '@external/redis.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { CacheConfig } from '@config/cache';
 

@@ -5,4 +5,6 @@ export enum Code {
   Ok = 'OK',
 
   RoomDoesNotExist = 'ROOM_DOES_NOT_EXIST',
+  AccountIsInUse = 'ACCOUNT_IS_IN_USE',
+  PlayerDoesNotExist = 'PLAYER_DOES_NOT_EXIST',
 }

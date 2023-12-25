@@ -1,20 +1,20 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { AuthService } from '../../service/auth';
-import { EmitEvent } from './chat.enum';
-import { ChatSocket } from './chat.type';
+import { EmitEvent } from './event.enum';
 import { LoggerService } from '@service/logger';
 import { User } from '@supabase/supabase-js';
-import { SendPrivateMessageDto } from './dto/send-private-message';
-import { SendRoomMessageDto } from './dto/send-room-message';
-import { RedisService } from '@external/redis';
+import { RedisService } from '@external/redis.service';
 import { REDIS } from '@constant/redis';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { CACHE } from '@constant/cache';
 import { WsException } from '@nestjs/websockets';
-import { PublicError } from '@filter/public-error.error';
+import { PublicError } from '@exception/public-error.error';
 import { Code } from '@enum/code';
 import { MillisecondsTime } from '@enum/time';
+import { ChatSocket } from './socketio.type';
+import { SendPrivateMessageRequest } from './dto/send-private-message';
+import { SendRoomMessageRequest } from './dto/send-room-message';
 
 @Injectable()
 export class ChatService {
@@ -33,6 +33,8 @@ export class ChatService {
   async connect(client: ChatSocket): Promise<void> {
     const player = await this._verifyClient(client);
     client.data.playerId = player.id;
+
+    this.logger.debug(`Player [${player.id}] connected with socket id [${client.id}]`);
   }
 
   /**
@@ -45,18 +47,18 @@ export class ChatService {
     }
     const player = await this.authService.getUser(token);
 
-    if (await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`)) {
+    // Check in current node and other nodes
+    if (
+      (await this.cacheManager.get<string | null>(`${CACHE.KEY.PLAYER_ID_TO_SOCKET_ID}${player.id}`)) ||
+      (await this.redis.client.get(`${REDIS.NAMESAPCE.PLAYER_ID_TO_SOCKET_ID}${player.id}`))
+    ) {
       throw new WsException('This account is being connected by someone else!');
     }
 
     this.redis.client
-      .set(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`, client.id, 'EX', MillisecondsTime.Forever)
+      .set(`${REDIS.NAMESAPCE.PLAYER_ID_TO_SOCKET_ID}${player.id}`, client.id, 'EX', MillisecondsTime.Forever)
       .then(() =>
-        this.cacheManager.set(
-          `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${player.id}`,
-          client.id,
-          MillisecondsTime.Forever,
-        ),
+        this.cacheManager.set(`${CACHE.KEY.PLAYER_ID_TO_SOCKET_ID}${player.id}`, client.id, MillisecondsTime.Forever),
       );
 
     return player;
@@ -66,34 +68,41 @@ export class ChatService {
    * Disconnect the client.
    */
   async disconnect(client: ChatSocket): Promise<void> {
-    await this.redis.client.del(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${client.data.playerId}`);
-    await this.cacheManager.del(`${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${client.data.playerId}`);
+    /**
+     * TODO: check if other nodes have client data or not
+     * This assumes that only node that established the connection to the disconnected client has client data.
+     */
+    if (client.data.playerId) {
+      await this.redis.client.del(`${REDIS.NAMESAPCE.PLAYER_ID_TO_SOCKET_ID}${client.data.playerId}`);
+    }
+
+    await this.cacheManager.del(`${CACHE.KEY.PLAYER_ID_TO_SOCKET_ID}${client.data.playerId}`);
+
+    this.logger.debug(`Player [${client.data.playerId}] with socket id [${client.id}] disconnected`);
   }
 
   /**
    * Send a private message to friend.
    */
-  async sendPrivateMessage(client: ChatSocket, payload: SendPrivateMessageDto): Promise<void> {
+  async sendPrivateMessage(client: ChatSocket, payload: SendPrivateMessageRequest): Promise<void> {
     if (!client.data.playerId) {
       client.disconnect();
       return;
     }
 
-    let sid = await this.cacheManager.get<string | null>(
-      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
-    );
+    let sid = await this.cacheManager.get<string | null>(`${CACHE.KEY.PLAYER_ID_TO_SOCKET_ID}${payload.receiverId}`);
     if (!sid) {
-      sid = await this.redis.client.get(`${REDIS.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`);
+      sid = await this.redis.client.get(`${REDIS.NAMESAPCE.PLAYER_ID_TO_SOCKET_ID}${payload.receiverId}`);
       if (!sid) {
         return;
+      } else {
+        this.cacheManager.set(
+          `${CACHE.KEY.PLAYER_ID_TO_SOCKET_ID}${payload.receiverId}`,
+          client.id,
+          MillisecondsTime.Forever,
+        );
       }
     }
-
-    this.cacheManager.set(
-      `${CACHE.PLAYER_ID_TO_SOCKET_ID_NAMESPACE}${payload.receiverId}`,
-      client.id,
-      MillisecondsTime.Forever,
-    );
 
     client.to(sid).emit(EmitEvent.PrivateMessage, {
       senderId: client.data.playerId,
@@ -104,7 +113,7 @@ export class ChatService {
   /**
    * Send a message to joined room.
    */
-  async sendRoomMessage(client: ChatSocket, payload: SendRoomMessageDto): Promise<void> {
+  async sendRoomMessage(client: ChatSocket, payload: SendRoomMessageRequest): Promise<void> {
     if (!client.data.playerId) {
       client.disconnect();
       return;

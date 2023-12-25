@@ -4,12 +4,12 @@ import { WsArgumentsHost } from '@nestjs/common/interfaces';
 import { RpcException } from '@nestjs/microservices';
 import { WsException } from '@nestjs/websockets';
 import { Observable, throwError } from 'rxjs';
-import { EmitEvent } from '@module/chat/chat.enum';
-import { ChatSocket } from '@module/chat/chat.type';
+import { EmitEvent } from '@module/chat/event.enum';
 import { LoggerService } from '@service/logger';
 import { status as grpcStatus } from '@grpc/grpc-js';
 import { Code } from '@enum/code';
 import { ErrResponse } from '@types';
+import { ChatSocket } from '@module/chat/socketio.type';
 
 /**
  * Filter all unexpected exceptions. All exceptions handled by this filter

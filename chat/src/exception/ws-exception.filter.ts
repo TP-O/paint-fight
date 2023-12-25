@@ -1,9 +1,9 @@
 import { Catch, ArgumentsHost, BadRequestException } from '@nestjs/common';
 import { BaseWsExceptionFilter } from '@nestjs/websockets';
-import { ChatSocket } from '../module/chat/chat.type';
-import { EmitEvent } from '../module/chat/chat.enum';
+import { EmitEvent } from '../module/chat/event.enum';
 import { Code } from '@enum/code';
 import { PublicError } from './public-error.error';
+import { ChatSocket } from '@module/chat/socketio.type';
 
 /**
  * Handle validation errors for websocket.

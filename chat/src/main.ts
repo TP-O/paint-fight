@@ -2,26 +2,17 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { AppConfig } from './config/app';
-import { ChatAdapter } from './module/chat/chat.adapter';
-import { RedisService } from './external/redis';
-import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { join } from 'path';
+import { SocketIoAdapter } from './module/chat/socketio.adapter';
+import { RedisService } from './external/redis.service';
+import { MicroserviceOptions } from '@nestjs/microservices';
 import { addReflectionToGrpcConfig } from 'nestjs-grpc-reflection';
+import { RoomServiceConfig } from '@config/microservices';
 
 async function bootstrap() {
   // TODO: remove fastify (dont use http)
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter());
   // TODO: secure grpc connection
-  app.connectMicroservice<MicroserviceOptions>(
-    addReflectionToGrpcConfig({
-      transport: Transport.GRPC,
-      options: {
-        package: ['room'],
-        protoPath: [join(__dirname, './module/room/proto/service.proto')],
-        gracefulShutdown: true,
-      },
-    }),
-  );
+  app.connectMicroservice<MicroserviceOptions>(addReflectionToGrpcConfig(RoomServiceConfig));
 
   const appConfig = app.get(AppConfig);
 
@@ -31,7 +22,7 @@ async function bootstrap() {
   });
 
   const redisService = app.get(RedisService);
-  const chatAdapter = new ChatAdapter(redisService.client, app);
+  const chatAdapter = new SocketIoAdapter(redisService.client, app);
   await chatAdapter.connectToRedis();
   app.useWebSocketAdapter(chatAdapter);
 

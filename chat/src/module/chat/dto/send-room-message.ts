@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class SendRoomMessageDto {
+export class SendRoomMessageRequest {
   @IsString()
   @IsNotEmpty()
   roomId!: string;

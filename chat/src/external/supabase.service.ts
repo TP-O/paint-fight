@@ -6,13 +6,13 @@ import { SupabaseAuthClient } from '@supabase/supabase-js/dist/module/lib/Supaba
 // TODO: secure supabase connection
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private readonly _supabase: SupabaseClient;
 
   constructor(config: SupabaseConfig) {
-    this.supabase = createClient(config.url, config.serviceRoleKey);
+    this._supabase = createClient(config.url, config.serviceRoleKey);
   }
 
   auth(): SupabaseAuthClient {
-    return this.supabase.auth;
+    return this._supabase.auth;
   }
 }

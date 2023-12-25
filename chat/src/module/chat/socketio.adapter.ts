@@ -4,7 +4,7 @@ import { ServerOptions } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { NestFastifyApplication } from '@nestjs/platform-fastify';
 
-export class ChatAdapter extends IoAdapter {
+export class SocketIoAdapter extends IoAdapter {
   private adapterConstructor!: ReturnType<typeof createAdapter>;
 
   constructor(

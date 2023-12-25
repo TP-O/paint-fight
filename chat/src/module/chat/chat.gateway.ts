@@ -10,13 +10,13 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
-import { ListenEvent } from './chat.enum';
-import { ChatSocket, ChatSocketServer } from './chat.type';
-import { AllExceptionFilter } from '@filter/all-exception.filter';
-import { EventBindingInterceptor } from './interceptor/event-binding';
-import { SendPrivateMessageDto } from './dto/send-private-message';
-import { SendRoomMessageDto } from './dto/send-room-message';
-import { WsExceptionFilter } from '@filter/ws-exception.filter';
+import { ListenEvent } from './event.enum';
+import { AllExceptionFilter } from '@exception/all-exception.filter';
+import { EventInterceptor } from './event.interceptor';
+import { SendPrivateMessageRequest } from './dto/send-private-message';
+import { SendRoomMessageRequest } from './dto/send-room-message';
+import { WsExceptionFilter } from '@exception/ws-exception.filter';
+import { ChatSocket, ChatSocketServer } from './socketio.type';
 
 @Injectable()
 @UseFilters(AllExceptionFilter, WsExceptionFilter)
@@ -36,8 +36,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   /**
    * Store player state before connection.
-   *
-   * @param client
    */
   async handleConnection(client: ChatSocket): Promise<void> {
     await this.chatService.connect(client);
@@ -45,8 +43,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   /**
    * Clear player state after disconnection.
-   *
-   * @param client
    */
   async handleDisconnect(client: ChatSocket): Promise<void> {
     await this.chatService.disconnect(client);
@@ -54,30 +50,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   /**
    * Send private message.
-   *
-   * @param client
-   * @param payload
    */
-  @UseInterceptors(new EventBindingInterceptor(ListenEvent.PrivateMessage))
+  @UseInterceptors(new EventInterceptor(ListenEvent.PrivateMessage))
   @SubscribeMessage(ListenEvent.PrivateMessage)
   async sendPrivateMessage(
     @ConnectedSocket() client: ChatSocket,
-    @MessageBody() payload: SendPrivateMessageDto,
+    @MessageBody() payload: SendPrivateMessageRequest,
   ): Promise<void> {
     await this.chatService.sendPrivateMessage(client, payload);
   }
 
   /**
    * Send room message.
-   *
-   * @param client
-   * @param payload
    */
-  @UseInterceptors(new EventBindingInterceptor(ListenEvent.RoomMessage))
+  @UseInterceptors(new EventInterceptor(ListenEvent.RoomMessage))
   @SubscribeMessage(ListenEvent.RoomMessage)
   async sendRoomMesage(
     @ConnectedSocket() client: ChatSocket,
-    @MessageBody() payload: SendRoomMessageDto,
+    @MessageBody() payload: SendRoomMessageRequest,
   ): Promise<void> {
     await this.chatService.sendRoomMessage(client, payload);
   }

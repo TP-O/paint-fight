@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class SendPrivateMessageDto {
+export class SendPrivateMessageRequest {
   @IsString()
   @IsNotEmpty()
   receiverId!: string;
